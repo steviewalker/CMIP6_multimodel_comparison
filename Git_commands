@@ -1,0 +1,11 @@
+git add --all
+git commit -m "Indicator figure"
+git push -u https://github.com/steviewalker/senior_thesis master
+
+sh --help
+
+git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+  
+#deletes failed pushes
+git reset HEAD~;
