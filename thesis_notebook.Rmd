@@ -204,6 +204,24 @@ dir.create(save.path)
 
 lapply(model.scenarios,combine_files, model.files, save.path, data.path)
 
+##UKESM Combine (just for the later files) -----------
+
+model.files <- list.files("~/senior_thesis/UKESM_data/expc_late", pattern = "*_gn_*.*nc$") 
+
+# list of unique models and scenarios
+model.scenarios <- list.files("~/senior_thesis/UKESM_data/expc_late", pattern = "*_gn_*.*nc$") %>% 
+  str_split(.,"_gn") %>% 
+  unlist %>% 
+  #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
+  grep("expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2",., value = TRUE) %>% 
+  unique()
+
+data.path <- "~/senior_thesis/UKESM_data/expc_late"
+save.path <- "~/senior_thesis/combined_UKESM_files"
+dir.create(save.path)
+
+lapply(model.scenarios,combine_files, model.files, save.path, data.path)
+
 ```
 
 
@@ -319,6 +337,7 @@ get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
 #start date = 09/03/12
 #end date = `05/10/97
 #the times on this one are averaged from 01/2077 - 01/2097 instead of 01/2078 - 01/2079 like the other models
+get_time(data.path = "~/senior_thesis/UKESM_data/", file.name = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_210001-210012.nc')
 
 calc_epc100_avg(data.path = "~/senior_thesis/combined_UKESM_files/",
                 file.name = 'epc100_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc',
@@ -536,41 +555,210 @@ ggsave(grid.combine, filename = "faceted_MLDmax.png", device = "png", path = "~/
 
 Calculate POC flux at the MLDmax
 ```{r}
+setwd("~/senior_thesis/")
+source('libraries.R')
+source('calc_expc_avg_new.R')
+source('calc_expc_avg_st.R')
+source('calc_expc_avg_lt.R')
+source('get_time.R')
+
+#every model but UKESM was averaged from 2015-2035 and 2079-2099, UKESM was 2015-2035 and 2077-2097
+
+## CESM --------------
+
+#start = 03/01/14, end = 02/08/99
+get_time(data.path = "~/senior_thesis/combined_CESM_files/",
+         file.name = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc')
+
+#Short term start: 03/01/15
+calc_expc_avg_st(wd = "~/senior_thesis/combined_CESM_files",
+              nc.file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+              model.name = "CESM",
+              start.st = 2,
+              lon.length = 1:320,
+              lat.length = 1:384)
+
+#Long term start: 02/13/79
+calc_expc_avg_lt(wd = "~/senior_thesis/combined_CESM_files",
+              nc.file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+              model.name = "CESM",
+              start.lt = 66,
+              lon.length = 1:320,
+              lat.length = 1:384)
+
+#new attempt
 calc_expc_avg(wd = "~/senior_thesis/combined_CESM_files",
               nc.file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
               model.name = "CESM",
               start.st = 2,
-              start.lt = 65,
-              lon.name = "nlon",
-              lat.name = "nlat")
+              start.lt = 66,
+              lon.length = 1:320,
+              lat.length = 1:384)
 
+
+## CMCC ----------------
+
+#start = 05/23/15, end = 05/02/00
 get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
          file.name = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc')
 
-calc_expc_avg(wd = "~/senior_thesis/combined_CMCC_files",
+#Short term start 05/23/15
+calc_expc_avg_st(wd = "~/senior_thesis/combined_CMCC_files",
               nc.file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
               model.name = "CMCC",
               start.st = 1,
-              start.lt = 64,
               lon.length = 1:362,
               lat.length = 1:292)
 
-#EC-Earth 
-
-get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
-         file.name = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc')
-
+#Long term start: 05/07/79
+calc_expc_avg_lt(wd = "~/senior_thesis/combined_CMCC_files",
+              nc.file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
+              model.name = "CMCC",
+              start.lt = 65,
+              lon.length = 1:362,
+              lat.length = 1:292)
 
 calc_expc_avg(wd = "~/senior_thesis/combined_CMCC_files",
               nc.file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
               model.name = "CMCC",
               start.st = 1,
-              start.lt = 64,
-              lon.name = "longitude",
-              lat.name = "latitude")
+              start.lt = 65,
+              lon.length = 1:362,
+              lat.length = 1:292)
+
+##EC-Earth ----------
+
+#start = 07/02/15, 07/02/00
+get_time(data.path = "~/senior_thesis/combined_EC-Earth_files/", file.name = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc')
+
+#Short term start: 07/02/15
+calc_expc_avg_st(wd = "~/senior_thesis/combined_EC-Earth_files",
+              nc.file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+              model.name = "EC-Earth",
+              start.st = 1, 
+              lon.length = 1:362,
+              lat.length = 1:292)
+
+#Long term start: 07/02/79
+calc_expc_avg_lt(wd = "~/senior_thesis/combined_EC-Earth_files",
+              nc.file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+              model.name = "EC-Earth",
+              start.lt = 65,
+              lon.length = 1:362,
+              lat.length = 1:292)
+
+calc_expc_avg(wd = "~/senior_thesis/combined_EC-Earth_files",
+              nc.file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+              model.name = "EC-Earth",
+              start.st = 1,
+              start.lt = 65,
+              lon.length = 1:362,
+              lat.length = 1:292)
+
+##GFDL -------
+
+get_time(data.path = "~/senior_thesis/combined_GFDL_files/", file.name = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc')
+
+#Short term start: 05/23/15
+calc_expc_avg_st(wd = "~/senior_thesis/combined_GFDL_files",
+              nc.file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+              model.name = "GFDL",
+              start.st = 1,
+              lon.length = 1:360,
+              lat.length = 1:180)
+
+#Long-term start: 05/07/79
+calc_expc_avg_lt(wd = "~/senior_thesis/combined_GFDL_files",
+              nc.file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+              model.name = "GFDL",
+              start.lt = 65,
+              lon.length = 1:360,
+              lat.length = 1:180)
+
+calc_expc_avg(wd = "~/senior_thesis/combined_GFDL_files",
+              nc.file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+              model.name = "GFDL",
+              start.st = 1,
+              start.lt = 65,
+              lon.length = 1:360,
+              lat.length = 1:180)
+##MPI --------
+
+#start = 07/02/15, end = 07/02/00
+get_time(data.path = "~/senior_thesis/combined_MPI_files/", file.name = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc')
+
+#07/02/15
+calc_expc_avg_st(wd = "~/senior_thesis/combined_MPI_files",
+              nc.file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+              model.name = "MPI",
+              start.st = 1, 
+              lon.length = 1:802,
+              lat.length = 1:404)
+
+#07/02/79
+calc_expc_avg_lt(wd = "~/senior_thesis/combined_MPI_files",
+              nc.file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+              model.name = "MPI",
+              start.lt = 65,
+              lon.length = 1:802,
+              lat.length = 1:404)
+
+
+##UKESM ----------
+
+#UKESM get time long-term, start = 03/04/47, end = 05/10/97
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_205001-210012.nc')
+#UKESM get time short-term, start = 09/03/12, end = 02/02/47
+get_time(data.path = "~/senior_thesis/UKESM_data/",
+         file.name = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc')
+
+#custom calculation for UKESM since I had to take the yearly average within the calc_expc_avg function
+source('calc_expc_st_UKESM.R')
+source('calc_expc_lt_UKESM.R')
 
 ```
 
+Plot 3 panel figure showing short-term (2015-2035), long-term (2079-2099), and difference in average POC flux at the MLDmax
+```{r}
+setwd("~/senior_thesis/")
+source('plot_expc_avg.R')
+
+#CESM
+plot_expc_avg(wd = "~/senior_thesis/combined_CESM_files",
+             nc_file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+             model.name = "CESM",
+             lat.name = "nlat",
+             lon.name = "nlon")
+
+#CMCC
+plot_expc_avg(wd = "~/senior_thesis/combined_CMCC_files",
+             nc_file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
+             model.name = "CMCC",
+             lat.name = "latitude",
+             lon.name = "longitude")
+
+#EC-Earth
+plot_expc_avg(wd = "~/senior_thesis/combined_EC-Earth_files",
+             nc_file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+             model.name = "EC-Earth",
+             lat.name = "latitude",
+             lon.name = "longitude")
+
+#GFDL
+plot_expc_avg(wd = "~/senior_thesis/combined_GFDL_files",
+             nc_file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+             model.name = "GFDL",
+             lat.name = "latitude",
+             lon.name = "longitude")
+
+#MPI
+plot_expc_avg(wd = "~/senior_thesis/combined_MPI_files",
+             nc_file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+             model.name = "MPI",
+             lat.name = "latitude",
+             lon.name = "longitude")
+```
 
 Plot depth profiles in various locations
 ```{r}

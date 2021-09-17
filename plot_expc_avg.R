@@ -1,6 +1,18 @@
+#' @title Plot average POC flux at MLDmax
+#' @author Stevie Walker
+#' @date 9/15/21
+#' @description plots and saves 1) a three panel figure of short term POC flux, long term POC flux, and change in POC flux for each model
+#' and 2) a one panel figure of change in POC flux that can be later combined in the notebook
+#' @description plots on the model's native grid
+#' @note check the file metadata for each model to find the lat and lon standard names
+#' @note model.name must match the name used in the Rds files saved from calc_epc_100_avg.R
+
+
+plot_expc_avg <- function(wd, nc_file, model.name, lat.name, lon.name) {
+
 #open nc file
-setwd("~/senior_thesis/combined_CMCC_files")
-nc_data <- nc_open('expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc')
+setwd(wd)
+nc_data <- nc_open(nc_file)
 
 mean_expc_st <- readRDS(paste("~/senior_thesis/plotting_dataframes/",model.name,"_mean_expc_st.Rds",sep=""))
 mean_expc_lt <- readRDS(paste("~/senior_thesis/plotting_dataframes/",model.name,"_mean_expc_lt.Rds",sep=""))
@@ -107,3 +119,4 @@ ggsave(paste(model.name,"_expc_global_map.png",sep=""), plot = figure, path = "~
 #saving panel c
 ggsave(paste(model.name,"_expc_change.png",sep=""), plot = plot3, path = "~/senior_thesis/figures", width = 20, height = 10, units = "cm", dpi = 400)
 
+}
