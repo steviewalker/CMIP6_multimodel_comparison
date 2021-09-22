@@ -703,6 +703,13 @@ calc_expc_avg_lt(wd = "~/senior_thesis/combined_MPI_files",
               lon.length = 1:802,
               lat.length = 1:404)
 
+calc_expc_avg(wd = "~/senior_thesis/combined_MPI_files",
+              nc.file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+              model.name = "MPI",
+              start.st = 1,
+              start.lt = 65,
+              lon.length = 1:802,
+              lat.length = 1:404)
 
 ##UKESM ----------
 
@@ -716,6 +723,17 @@ get_time(data.path = "~/senior_thesis/UKESM_data/",
 #custom calculation for UKESM since I had to take the yearly average within the calc_expc_avg function
 source('calc_expc_st_UKESM.R')
 source('calc_expc_lt_UKESM.R')
+
+#save matrices for plotting
+setwd("~/senior_thesis/plotting_dataframes/")
+#find change in POC flux 
+mean_expc_st <- readRDS("~/senior_thesis/plotting_dataframes/UKESM_mean_expc_st.Rds")
+mean_expc_lt <- readRDS("~/senior_thesis/plotting_dataframes/UKESM_mean_expc_lt.Rds")
+
+expc_change = mean_expc_lt - mean_expc_st
+
+#save change in POC flux at MLDmax matrix
+saveRDS(expc_change, file = "UKESM_expc_change.Rds", ascii = TRUE)
 
 ```
 
@@ -749,8 +767,8 @@ plot_expc_avg(wd = "~/senior_thesis/combined_EC-Earth_files",
 plot_expc_avg(wd = "~/senior_thesis/combined_GFDL_files",
              nc_file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
              model.name = "GFDL",
-             lat.name = "latitude",
-             lon.name = "longitude")
+             lat.name = "lat",
+             lon.name = "lon")
 
 #MPI
 plot_expc_avg(wd = "~/senior_thesis/combined_MPI_files",
@@ -758,9 +776,99 @@ plot_expc_avg(wd = "~/senior_thesis/combined_MPI_files",
              model.name = "MPI",
              lat.name = "latitude",
              lon.name = "longitude")
+
+#UKESM
+plot_expc_avg(wd = "~/senior_thesis/UKESM_data",
+             nc_file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc',
+             model.name = "UKESM",
+             lat.name = "latitude",
+             lon.name = "longitude")
 ```
 
-Plot depth profiles in various locations
+Plot 6 panel figure showing POC flux change at MLDmax for all models
+```{r}
+setwd("~/senior_thesis/figures/")
+A <- readPNG('CESM_expc_change.png')
+B <- readPNG('CMCC_expc_change.png')
+C <- readPNG('EC-Earth_expc_change.png')
+D <- readPNG('GFDL_expc_change.png')
+E <- readPNG('MPI_expc_change.png')
+
+
+grid.combine <- grid.arrange(rasterGrob(A),rasterGrob(B),rasterGrob(C),
+                             rasterGrob(D),rasterGrob(E),ncol=2, nrow=3)
+
+ggsave(grid.combine, filename = "faceted_expc.png", device = "png", path = "~/senior_thesis/figures/", 
+       dpi = 500, width = 16, height = 12, units = "cm")
+```
+
+Calculate and plot change in POC flux difference (MLDmax - 100m) - 3 panel fig for each model and 6 panel fig of all models 
+```{r}
+setwd('~/senior_thesis')
+source('calc_depth_horizon_diff.R')
+
+calc_depth_horizon_diff("CESM")
+calc_depth_horizon_diff("CMCC")
+calc_depth_horizon_diff("EC-Earth")
+calc_depth_horizon_diff("GFDL")
+calc_depth_horizon_diff("MPI")
+
+#CESM
+plot_depth_horizon_diff(wd = "~/senior_thesis/combined_CESM_files",
+                        nc_file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+                        model.name = "CESM",
+                        lat.name = "nlat",
+                        lon.name = "nlon")
+
+#CMCC
+plot_depth_horizon_diff(wd = "~/senior_thesis/combined_CMCC_files",
+                        nc_file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                        model.name = "CMCC",
+                        lat.name = "latitude",
+                        lon.name = "longitude")
+
+#EC-Earth
+plot_depth_horizon_diff(wd = "~/senior_thesis/combined_EC-Earth_files",
+                        nc_file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                        model.name = "EC-Earth",
+                        lat.name = "latitude",
+                        lon.name = "longitude")
+
+#GFDL
+plot_depth_horizon_diff(wd = "~/senior_thesis/combined_GFDL_files",
+                        nc_file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+                        model.name = "GFDL",
+                        lat.name = "lat",
+                        lon.name = "lon")
+
+#MPI
+plot_depth_horizon_diff(wd = "~/senior_thesis/combined_MPI_files",
+                        nc_file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                        model.name = "MPI",
+                        lat.name = "latitude",
+                        lon.name = "longitude")
+
+## 6 panel fig -------
+
+setwd("~/senior_thesis/figures/")
+A <- readPNG('CESM_expc-epc100.png')
+B <- readPNG('CMCC_expc-epc100.png')
+C <- readPNG('EC-Earth_expc-epc100.png')
+D <- readPNG('GFDL_expc-epc100.png')
+E <- readPNG('MPI_expc-epc100.png')
+
+
+grid.combine <- grid.arrange(rasterGrob(A),rasterGrob(B),rasterGrob(C),
+                             rasterGrob(D),rasterGrob(E),ncol=2, nrow=3)
+
+ggsave(grid.combine, filename = "faceted_expc-epc100.png", device = "png", path = "~/senior_thesis/figures/", 
+       dpi = 500, width = 16, height = 12, units = "cm")
+
+
+```
+
+
+Plot CESM depth profiles in various locations
 ```{r}
 setwd("~/senior_thesis/combined_CESM_files/")
 nc_data <- nc_open('expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc')

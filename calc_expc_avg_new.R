@@ -2,7 +2,8 @@
 #' @author Stevie Walker
 #' @date 9/17/21
 #' @description finds the short-term and long-term 20 year average in POC flux at the maximum annual MLD for CMIP6 earth system models
-#' @note this function takes a very long time to run
+#' @note this function takes a while to run, you can run each model in a different R session to make things go faster
+#' @note check metadata for lat and lon name and depth units before running function
 #' @inputs depth resolved POC flux file, MLDmax array (comes from running calc_MLD_max.R)
 #' @output 3 matrices (lat x lon) of interpolated POC flux values for a 20 year short-term average (2015-2035), long-term average (2079-2099), and change
 
@@ -47,14 +48,15 @@ calc_expc_avg <- function(wd, nc.file, model.name, start.st, start.lt, lon.lengt
         
         #make list and add needed columns
         ret <- list()
-        ret$depth <-  ncvar_get(nc_data, "lev")/100
+        #NOTE - make sure you divide by 100 here if the depth units are in cm (CESM), otherwise the depth units are in m
+        ret$depth <-  ncvar_get(nc_data, "lev")
         #subset expc for select lat and lon
         ret$expc <- extract(expc2015, indices = c(i,j), dims = c(1,2))
         #subset MLD max for each lat and lon
         ret$MLD <- extract(MLD_max_st[, , k], indices = c(i,j), dims = c(1,2))
         
         #ocean values - if a value exists for MLDmax, then interpolate and store new interpolated POC flux in output matrix
-        if (is.na(ret$MLD) == FALSE) {
+        if(!is.na(ret$MLD)) {
           
           #find interpolated expc at mld max
           interp <- approx(x = ret$depth, y  = ret$expc, xout = ret$MLD)
@@ -108,14 +110,15 @@ calc_expc_avg <- function(wd, nc.file, model.name, start.st, start.lt, lon.lengt
         
         #make list and add needed columns
         ret <- list()
-        ret$depth <-  ncvar_get(nc_data, "lev")/100
+        #NOTE - make sure you divide by 100 here if the depth units are in cm (CESM), otherwise the depth units are in m
+        ret$depth <-  ncvar_get(nc_data, "lev")
         #subset expc for select lat and lon
         ret$expc <- extract(expc2077, indices = c(i,j), dims = c(1,2))
         #subset MLD max for each lat and lon
         ret$MLD <- extract(MLD_max_lt[, , k], indices = c(i,j), dims = c(1,2))
         
         #ocean values - if a value exists for MLDmax, then interpolate and store new interpolated POC flux in output matrix
-        if (is.na(ret$MLD) == FALSE) {
+        if(!is.na(ret$MLD)) {
           
           #find interpolated expc at mld max
           interp <- approx(x = ret$depth, y  = ret$expc, xout = ret$MLD)
