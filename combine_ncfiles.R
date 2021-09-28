@@ -6,7 +6,7 @@
 #' @author Hem Nalini Morzaria-Luna, hmorzarialuna@gmail.com modified 2/8/21 by Stevie Walker steviewalker99@gmail.com
 
 #testing
-this.pattern <- model.scenarios
+#this.pattern <- model.scenarios
 
 combine_files <- function(this.pattern, model.files, save.path, data.path){
   

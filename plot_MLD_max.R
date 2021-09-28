@@ -100,8 +100,8 @@ melt_MLD_change <- melt_mld(file_info)
 
 MLD_max_change<- ggplot(data = melt_MLD_change, aes(x = lon, y = lat, fill = mlotst)) + 
   geom_raster(interpolate = TRUE) +
-  scale_fill_cmocean(limits = c(-150,150), oob = squish, name = "balance", direction = -1) +
- # scale_y_continuous(trans = "reverse") + #comment and uncomment this line for MPI
+  scale_fill_cmocean(limits = c(-150,150), oob = squish, name = "balance", direction = 1) +
+  #scale_y_continuous(trans = "reverse") + #comment and uncomment this line for MPI
   theme_bw() +
   labs(title = expression(paste("c) Change in"," MLD"[max]," (m)",sep=""))) +
   theme(axis.title = element_text(size = 9),
@@ -112,7 +112,7 @@ MLD_max_change
 
 MLD_max_change2<- ggplot(data = melt_MLD_change, aes(x = lon, y = lat, fill = mlotst)) + 
   geom_raster(interpolate = TRUE) +
-  scale_fill_cmocean(limits = c(-150,150), oob = squish, name = "balance", direction = -1) +
+  scale_fill_cmocean(limits = c(-150,150), oob = squish, name = "balance", direction = 1) +
   #scale_y_continuous(trans = "reverse") + #comment and uncomment this line for MPI
   theme_bw() +
   labs(title = model.name,

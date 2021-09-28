@@ -39,7 +39,7 @@ melt_expc <- melt_expc(ret)
 plot1 <- ggplot(data = melt_expc, aes(x = lon, y = lat, fill = expc)) + 
   geom_raster(interpolate = TRUE) +
   scale_fill_cmocean(limits = c(0,8), oob = squish, name = "deep", direction = 1) +
-  scale_y_continuous(trans = "reverse") + #comment and uncomment this line for MPI
+  #scale_y_continuous(trans = "reverse") + #comment and uncomment this line for MPI
   theme_bw() +
   labs(title = expression(paste("Short-term (2015-2035) POC Flux at MLDmax (mol ",m^-2," ",y^-1,")", sep = ""))) +
   theme(axis.title = element_text(size = 9),
@@ -69,7 +69,7 @@ melt_expc <- melt_expc(ret)
 plot2 <- ggplot(data = melt_expc, aes(x = lon, y = lat, fill = expc)) + 
   geom_raster(interpolate = TRUE) +
   scale_fill_cmocean(limits = c(0,8), oob = squish, name = "deep", direction = 1) +
-  scale_y_continuous(trans = "reverse") + #comment and uncomment this line for MPI
+  #scale_y_continuous(trans = "reverse") + #comment and uncomment this line for MPI
   theme_bw() +
   labs(title = expression(paste("Long-term (2078-2098) POC Flux at MLDmax (mol ",m^-2," ",y^-1,")", sep = ""))) +
   theme(axis.title = element_text(size = 9),
@@ -100,7 +100,7 @@ melt_expc <- melt_expc(ret)
 plot3 <- ggplot(data = melt_expc, aes(x = lon, y = lat, fill = expc)) + 
   geom_raster(interpolate = TRUE) +
   scale_fill_cmocean(limits = c(-2,2), oob = squish, name = "balance", direction = 1)+
-  scale_y_continuous(trans = "reverse") + #comment and uncomment this line for MPI
+  #scale_y_continuous(trans = "reverse") + #comment and uncomment this line for MPI
   theme_bw() +
   labs(title = expression(paste("Change in POC Flux at MLDmax (mol ",m^-2," ",y^-1,")", sep = ""))) +
   theme(axis.title = element_text(size = 9),
@@ -122,3 +122,4 @@ ggsave(paste(model.name,"_expc_global_map.png",sep=""), plot = figure, path = "~
 ggsave(paste(model.name,"_expc_change.png",sep=""), plot = plot3, path = "~/senior_thesis/figures", width = 20, height = 10, units = "cm", dpi = 400)
 
 }
+

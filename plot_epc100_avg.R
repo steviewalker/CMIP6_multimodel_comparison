@@ -107,7 +107,7 @@ mepc100 <- melt_epc100(file_info)
 
 basic.plot3<- ggplot(data = mepc100, aes(x = lon, y = lat, fill = epc100)) + 
   geom_raster(interpolate = TRUE) +
-  scale_fill_cmocean(limits = c(-2,2), oob = squish, name = "balance", direction = -1)+
+  scale_fill_cmocean(limits = c(-2,2), oob = squish, name = "balance", direction = 1)+
   #scale_y_continuous(trans = "reverse") + #comment and uncomment this line for MPI
   theme_bw() +
   labs(title = expression(paste("c) Change in POC Flux (mol ",m^-2," ",y^-1,")", sep = ""))) +
@@ -120,7 +120,7 @@ basic.plot3
 
 change<- ggplot(data = mepc100, aes(x = lon, y = lat, fill = epc100)) + 
   geom_raster(interpolate = TRUE) +
-  scale_fill_cmocean(limits = c(-2,2), oob = squish, name = "balance", direction = -1)+
+  scale_fill_cmocean(limits = c(-2,2), oob = squish, name = "balance", direction = 1)+
   #scale_y_continuous(trans = "reverse") + #comment and uncomment this line for MPI
   theme_bw() +
   labs(title = model.name,
