@@ -1,3 +1,8 @@
+#' @title Calculate difference between changes in POC flux at 100m and MLDmax
+#' @author Stevie Walker
+#' @date 10/1/21
+#' @input two matrices of POC flux change at both depth horizons
+#' @output two matrices of POC flux difference (100m - MLDmax) and (MLDmax - 100m)
 
 calc_depth_horizon_diff <- function(model.name) {
   

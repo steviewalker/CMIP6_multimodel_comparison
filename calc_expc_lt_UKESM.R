@@ -75,13 +75,6 @@ expc_lt <- array(expc_lt, dim=c(dim(list_expc[[1]]), length(list_expc)))
 #20 year mean for the beginning of the 21st century
 mean_expc_lt <- apply(expc_lt, c(1, 2), mean, na.rm = FALSE)
 
-#calculate difference
-mean_expc_st <- readRDS("~/senior_thesis/plotting_dataframes/UKESM_mean_expc_st.Rds")
-expc_change <- mean_expc_lt - mean_expc_st
-
 #save matrix for plotting
 setwd("~/senior_thesis/plotting_dataframes/")
 saveRDS(mean_expc_lt, file = "UKESM_mean_expc_lt.Rds", ascii = TRUE)
-saveRDS(expc_change, file = "UKESM_expc_change.Rds", ascii = TRUE)
-
-

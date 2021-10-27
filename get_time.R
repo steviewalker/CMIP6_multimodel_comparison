@@ -28,3 +28,4 @@ get_time <- function (data.path, file.name) {
   #lists the dates for the averages that are being calculated
   print(time.corrected)
 }
+

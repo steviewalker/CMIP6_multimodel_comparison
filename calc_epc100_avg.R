@@ -17,9 +17,6 @@ nc_data <- nc_open(file.name)
 #get variable at specified time range (12 months x 20 years = 240 months, aka 240 time count)
 variable_st <- ncvar_get(nc_data,"epc100",start= start.st, count = c(-1,-1, 240))
 
-#calculate average global POC flux for every month between 2014-2034 NOTE: come back and try and plot this later for selected regions
-var_st <- apply(variable_st,3,mean,na.rm=TRUE)
-
 #calculate average POC flux for each grid cell over the years 2014-2034
 var_average1 <- apply(variable_st, c(1,2),mean,na.rm=FALSE)
 
@@ -37,7 +34,7 @@ variable_lt <- ncvar_get(nc_data,"epc100",start= start.lt, count = c(-1,-1,240))
 #calculate average POC flux for each grid cell over the years 2013-2033
 var_average2 <- apply(variable_lt, c(1,2),mean,na.rm=FALSE)
 
-#convert from mol/m2/s to mol/m2/yr I need help here
+#convert from mol/m2/s to mol/m2/yr
 var_year2 = var_average2*31536000
 
 #calculate change in average POC flux between beginning and end of 21st c

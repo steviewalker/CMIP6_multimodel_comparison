@@ -1,12 +1,13 @@
-#' @title Calculate short-term and long-term POC flux at maximum annual MLD
+#' @title Calculate short-term POC flux at any depth
 #' @author Stevie Walker
 #' @date 9/17/21
-#' @description finds the short-term and long-term 20 year average in POC flux at the maximum annual MLD for CMIP6 earth system models
+#' @description finds the short-term and long-term 20 year average in POC flux at any singular depth CMIP6 earth system models
 #' @note this function takes a while to run, you can run each model in a different R session to make things go faster
-#' @note check metadata for lat and lon name and depth units before running function
-#' @inputs depth resolved POC flux file, MLDmax array (comes from running calc_MLD_max.R)
+#' @note check metadata for lat and lon name and depth units before running function, CESM depth is in cm not m
+#' @inputs depth resolved POC flux file
 #' @output 3 matrices (lat x lon) of interpolated POC flux values for a 20 year short-term average (2015-2035), long-term average (2079-2099), and change
 
+#example inputs
 #model.name = "CESM"
 #wd = "~/senior_thesis/combined_CESM_files"
 #nc.file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc'
@@ -14,15 +15,18 @@
 #start.lt = 65
 #lon.length = 1:320
 #lat.length = 1:384
+#depth = 200
 
-calc_expc_avg <- function(wd, nc.file, model.name, start.st, start.lt, lon.length, lat.length) {
+calc_expc_meters <- function(wd, nc.file, model.name, start.st, start.lt, lon.length, lat.length, depth) {
   
   setwd(wd)
   nc_data <- nc_open(nc.file)
   
   #read in MLDmax arrays - MLDmax for each year (these objects come from calc_MLD_max.R)
+  #the only reason you need MLDmax arrays here is for the NA test
   MLD_max_st <- readRDS(paste("~/senior_thesis/plotting_dataframes/",model.name,"_array_MLD_max_st.Rds",sep = ""))
   MLD_max_lt <- readRDS(paste("~/senior_thesis/plotting_dataframes/",model.name,"_array_MLD_max_lt.Rds",sep = ""))
+  
   
   ## SHORT-TERM FOR LOOP ----------------
   
@@ -33,7 +37,6 @@ calc_expc_avg <- function(wd, nc.file, model.name, start.st, start.lt, lon.lengt
   list_expc <- list()
   #storage container for second for loop
   output <- matrix(nrow = length(lon.length), ncol = length(lat.length))
-  
   
   #creates list of 20 arrays with POC flux at every lat,lon,depth
   for(k in 1:length(v)) {
@@ -49,17 +52,19 @@ calc_expc_avg <- function(wd, nc.file, model.name, start.st, start.lt, lon.lengt
         #make list and add needed columns
         ret <- list()
         #NOTE - make sure you divide by 100 here if the depth units are in cm (CESM), otherwise the depth units are in m
-        ret$depth <-  ncvar_get(nc_data, "lev") #/100
+        ret$depth <-  ncvar_get(nc_data, "lev")
         #subset expc for select lat and lon
         ret$expc <- extract(expc2015, indices = c(i,j), dims = c(1,2))
-        #subset MLD max for each lat and lon
+        #subset MLD max for each lat and lon - just need this for the NA test
         ret$MLD <- extract(MLD_max_st[, , k], indices = c(i,j), dims = c(1,2))
+        #the depth to interpolate at
+        ret$dh <- depth
         
         #ocean values - if a value exists for MLDmax, then interpolate and store new interpolated POC flux in output matrix
         if (is.na(ret$MLD) == FALSE) {
           
           #find interpolated expc at mld max
-          interp <- approx(x = ret$depth, y  = ret$expc, xout = ret$MLD)
+          interp <- approx(x = ret$depth, y  = ret$expc, xout = ret$dh)
           #store interpolated POC flux into the output matrix
           output[i, j] <- interp$y[1]
           #land values - if a value doesn't exist for MLDmax, then don't interpolate, just put an NA value in output matrix  
@@ -72,7 +77,6 @@ calc_expc_avg <- function(wd, nc.file, model.name, start.st, start.lt, lon.lengt
     list_expc[[k]] <- output
   }
   
-  
   #converts from list to matrices
   expc_st <- do.call(cbind, list_expc)
   #combines matrices into a single array
@@ -83,7 +87,7 @@ calc_expc_avg <- function(wd, nc.file, model.name, start.st, start.lt, lon.lengt
   
   #save matrix for plotting
   setwd("~/senior_thesis/plotting_dataframes/")
-  saveRDS(mean_expc_st, file = paste(model.name,"_mean_expc_st.Rds",sep=""), ascii = TRUE)
+  saveRDS(mean_expc_st, file = paste(model.name,"_",depth,"_mean_expc_st.Rds",sep=""), ascii = TRUE)
   
   
   ## LONG-TERM FOR LOOP ----------------
@@ -114,14 +118,16 @@ calc_expc_avg <- function(wd, nc.file, model.name, start.st, start.lt, lon.lengt
         ret$depth <-  ncvar_get(nc_data, "lev")
         #subset expc for select lat and lon
         ret$expc <- extract(expc2077, indices = c(i,j), dims = c(1,2))
-        #subset MLD max for each lat and lon
+        #subset MLD max for each lat and lon - just need this for the NA test
         ret$MLD <- extract(MLD_max_lt[, , k], indices = c(i,j), dims = c(1,2))
+        #the depth to interpolate at
+        ret$dh <- depth
         
         #ocean values - if a value exists for MLDmax, then interpolate and store new interpolated POC flux in output matrix
         if (is.na(ret$MLD) == FALSE) {
           
           #find interpolated expc at mld max
-          interp <- approx(x = ret$depth, y  = ret$expc, xout = ret$MLD)
+          interp <- approx(x = ret$depth, y  = ret$expc, xout = ret$dh)
           #store interpolated POC flux into the output matrix
           output[i, j] <- interp$y[1]
           #land values - if a value doesn't exist for MLDmax, then don't interpolate, just put an NA value in output matrix  
@@ -148,7 +154,7 @@ calc_expc_avg <- function(wd, nc.file, model.name, start.st, start.lt, lon.lengt
   
   #save matrix for plotting
   setwd("~/senior_thesis/plotting_dataframes/")
-  saveRDS(mean_expc_lt, file = paste(model.name,"_mean_expc_lt.Rds",sep=""), ascii = TRUE)
-  saveRDS(expc_change, file = paste(model.name,"_expc_change.Rds",sep=""), ascii = TRUE)
+  saveRDS(mean_expc_lt, file = paste(model.name,"_",depth,"_mean_expc_lt.Rds",sep=""), ascii = TRUE)
+  saveRDS(expc_change, file = paste(model.name,"_",depth,"_expc_change.Rds",sep=""), ascii = TRUE)
   
 }

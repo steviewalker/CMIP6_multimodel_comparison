@@ -3,28 +3,19 @@ title: "Stevie's Senior Thesis"
 output: html_notebook
 ---
 
-Load libraries
+1. Load libraries
 ```{r}
 setwd("~/senior_thesis/)
 
 source('libraries.R')
-source('get_nc.R')
 
 ```
 
-Download data files
+2. Using epwshiftr to specify which files to download
 ```{r}
-model.list = c("HadGEM3-GC31-LL","EC-Earth3", "MRI-ESM2-0", "NorESM2-LM", "NorESM2-MM", "CMCC-CM2-SR5", "AWI-CM-1-1-MR")
-lapply(model.list, get_nc)
-#system("az vm deallocate --name atlantisserver01 --no-wait --resource-group morzariacedogroup")
+# NOTE: epwshiftr package may not work with older versions of R (i.e. 3.6.3)
 
-#get_nc(model.name = "AWI-CM-1-1-MR")
-
-```
-
-Using epwshiftr to specify which files to download
-```{r}
-# NOTE: epwshiftr package does not work with this version of R (3.6.3), so I had to run this section in a different server
+# fill out this format with the variables you need, create the index, then download from index in the next step
 
 # set directory to store files
 options(epwshiftr.dir = tempdir())
@@ -36,35 +27,35 @@ options(epwshiftr.verbose = TRUE)
 # create a CMIP6 output file index
 idx <- init_cmip6_index(
   # only consider ScenarioMIP activity
-  activity = "ScenarioMIP",
+  activity = "CMIP",
   
   # specify variables POC, NPP, and MLD
   variable = c("epc100"),
   
   # specify report frequency
-  frequency = "mon",
+  frequency = c("mon"),
   
   # specify experiment name
-  experiment = c("ssp585"),
+  experiment = c("historical"),
   
   # specify GCM names
-  source = c("CMCC-ESM2"),
+  source = c("EC-Earth3-CC","MPI-ESM1-2-HR"),
   
   # specify variant,
-  variant = "r1i1p1f1",
+  variant = c("r1i1p1f1"),
   
   # save to data directory
   save = FALSE
 )
 
-#
+#subset index data frame to only keep the wget url
 df <- idx[,21]
-#saving CMIP6 data list
-write.csv(df,"~/senior_thesis/download_indexes/cmip6_index2.csv", row.names = TRUE)
+#saving CMIP6 data list (rename this every time to the save name of your choice)
+write_csv(df,"~/senior_thesis/download_indexes/historical.csv")
 
 ```
 
-Download data files
+3. Download data files
 ```{r}
 
 source('get_nc_thredds.R')
@@ -105,23 +96,39 @@ get_nc_thredds(cmip6.index, save.path)
 cmip6.index <- read_csv("~/senior_thesis/download_indexes/cmip6_index2.csv")
 get_nc_thredds(cmip6.index, save.path)
 
-#Download areacello data for all models but CESM (already downloaded)
+
+#Download CMCC pp data
+cmip6.index <- read_csv("~/senior_thesis/download_indexes/cmip6_CMCC_pp.csv")
+get_nc_thredds(cmip6.index,save.path)
+
+#download historical data
+cmip6.index <- read_csv("~/senior_thesis/download_indexes/historical.csv")
+get_nc_thredds(cmip6.index, save.path)
+
+#download GFDL historical data
+cmip6.index <- read_csv("~/senior_thesis/download_indexes/GFDL_historical.csv")
+get_nc_thredds(cmip6.index, save.path)
 
 ```
 
-Combine multipart files into a single nc file
+4. Combine multipart files into a single nc file
 ```{r}
-## CESM Combine ----------
+#after downloading all the files, move them into their corresponding model folder (ex. CESM_data)
 
-# list of all files with gr: "data reported on a model's regular grid"
+## CESM Combine ----------
+setwd('~/senior_thesis/')
+source('libraries.R')
+source('combine_ncfiles.R')
+
+# list of all files with either native grid or regular grid pattern (switch between depending on the model)
 model.files <- list.files("~/senior_thesis/CESM_data/", pattern = "*_gn_*.*nc$") 
 
 # list of unique models and scenarios
 model.scenarios <- list.files("~/senior_thesis/CESM_data/", pattern = "*_gn_*.*nc$") %>% 
   str_split(.,"_gn") %>% 
   unlist %>% 
-  #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
-  grep("mlotstmax_Omon_CESM2_ssp585_r10i1p1f1",., value = TRUE) %>% 
+  #switch between variables and model reps here. You can do this manually here, then rerun.
+  grep("expc_Oyr_CESM2_historical_r10i1p1f1",., value = TRUE) %>% 
   unique()
 
 data.path <- "~/senior_thesis/CESM_data/"
@@ -138,7 +145,7 @@ model.scenarios <- list.files("~/senior_thesis/GFDL_data/", pattern = "*_gr_*.*n
   str_split(.,"_gr") %>% 
   unlist %>% 
   #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
-  grep("mlotst_Omon_GFDL-ESM4_ssp585_r1i1p1f1",., value = TRUE) %>% 
+  grep("expc_Oyr_GFDL-ESM4_historical_r1i1p1f1",., value = TRUE) %>% 
   unique()
 
 data.path <- "~/senior_thesis/GFDL_data/"
@@ -157,7 +164,7 @@ model.scenarios <- list.files("~/senior_thesis/UKESM_data/", pattern = "*_gn_*.*
   str_split(.,"_gn") %>% 
   unlist %>% 
   #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
-  grep("expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2",., value = TRUE) %>% 
+  grep("expc_Omon_UKESM1-0-LL_historical_r1i1p1f2",., value = TRUE) %>% 
   unique()
 
 data.path <- "~/senior_thesis/UKESM_data/"
@@ -176,7 +183,7 @@ model.scenarios <- list.files("~/senior_thesis/EC_Earth_data/", pattern = "*_gn_
   str_split(.,"_gn") %>% 
   unlist %>% 
   #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
-  grep("expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1",., value = TRUE) %>% 
+  grep("epc100_Omon_EC-Earth3-CC_historical_r1i1p1f1",., value = TRUE) %>% 
   unique()
 
 data.path <- "~/senior_thesis/EC_Earth_data/"
@@ -195,7 +202,7 @@ model.scenarios <- list.files("~/senior_thesis/MPI_data/", pattern = "*_gn_*.*nc
   str_split(.,"_gn") %>% 
   unlist %>% 
   #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
-  grep("mlotst_Omon_MPI-ESM1-2-HR_ssp585_r1i1p1f1",., value = TRUE) %>% 
+  grep("epc100_Omon_MPI-ESM1-2-HR_historical_r1i1p1f1",., value = TRUE) %>% 
   unique()
 
 data.path <- "~/senior_thesis/MPI_data/"
@@ -204,28 +211,47 @@ dir.create(save.path)
 
 lapply(model.scenarios,combine_files, model.files, save.path, data.path)
 
-##UKESM Combine (just for the later files) -----------
+##UKESM Combine -----------
 
-model.files <- list.files("~/senior_thesis/UKESM_data/expc_late", pattern = "*_gn_*.*nc$") 
+model.files <- list.files("~/senior_thesis/UKESM_data/", pattern = "*_gn_*.*nc$") 
 
 # list of unique models and scenarios
-model.scenarios <- list.files("~/senior_thesis/UKESM_data/expc_late", pattern = "*_gn_*.*nc$") %>% 
+model.scenarios <- list.files("~/senior_thesis/UKESM_data/", pattern = "*_gn_*.*nc$") %>% 
   str_split(.,"_gn") %>% 
   unlist %>% 
   #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
-  grep("expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2",., value = TRUE) %>% 
+  grep("pp_Omon_UKESM1-0-LL_ssp585_r1i1p1f2",., value = TRUE) %>% 
   unique()
 
-data.path <- "~/senior_thesis/UKESM_data/expc_late"
+data.path <- "~/senior_thesis/UKESM_data/"
 save.path <- "~/senior_thesis/combined_UKESM_files"
 dir.create(save.path)
 
 lapply(model.scenarios,combine_files, model.files, save.path, data.path)
 
+## CMCC Combine -------------
+# list of all files with gr: "data reported on a model's regular grid"
+model.files <- list.files("~/senior_thesis/cmip6_data/", pattern = "*_gn_*.*nc$") 
+
+# list of unique models and scenarios
+model.scenarios <- list.files("~/senior_thesis/cmip6_data/", pattern = "*_gn_*.*nc$") %>% 
+  str_split(.,"_gn") %>% 
+  unlist %>% 
+  #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
+  grep("pp_Omon_CMCC-ESM2_ssp585_r1i1p1f1",., value = TRUE) %>% 
+  unique()
+
+data.path <- "~/senior_thesis/cmip6_data/"
+save.path <- "~/senior_thesis/combined_CMCC_files"
+dir.create(save.path)
+
+lapply(model.scenarios,combine_files, model.files, save.path, data.path)
+
+
 ```
 
 
-Get metadata for combined files
+5. Get metadata for combined files
 ```{r}
 source('grab_metadata.R')
 
@@ -257,7 +283,7 @@ grab_metadata(data.path = "~/senior_thesis/combined_UKESM_files",
 ```
 
 
-Calculate short-term (2014-2034) and long-term (2079-2099) average downward flux of POC at 100m
+6. Calculate short-term (2014-2034) and long-term (2079-2099) average downward flux of POC at 100m
 units: (mol m-2 y-1)
 ```{r}
 setwd("~/senior_thesis/")
@@ -265,7 +291,12 @@ setwd("~/senior_thesis/")
 source('calc_epc100_avg.R')
 source('get_time.R')
 
+#expands prints so you can see all the time steps
 options(max.print = 2000)
+
+#create folder to save Rds files (matrices for plotting)
+save.path <- "~/senior_thesis/plotting_dataframes"
+dir.create(save.path)
 
 ## CESM --------------
 
@@ -277,7 +308,7 @@ get_time(data.path = "~/senior_thesis/combined_CESM_files/",
 calc_epc100_avg(data.path = "~/senior_thesis/combined_CESM_files/",
                 file.name = 'epc100_Omon_CESM2_ssp585_r10i1p1f1_gn_201501-210012.nc',
                 start.st = c(1,1,17),
-                start.lt = c(1,1,774),
+                start.lt = c(1,1,786),
                 save.name = "CESM_epc100_avg")
 
 
@@ -313,6 +344,10 @@ get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
 #start date = 12/07/14
 #end date = `10/16/00
 
+#historical time
+get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
+         file.name = 'expc_Oyr_GFDL-ESM4_historical_r1i1p1f1_gn_NA-NA.nc')
+
 calc_epc100_avg(data.path = "~/senior_thesis/combined_GFDL_files/",
                 file.name = 'epc100_Omon_GFDL-ESM4_ssp585_r1i1p1f1_gr_201501-210012.nc',
                 start.st = c(1,1,2),
@@ -347,7 +382,7 @@ calc_epc100_avg(data.path = "~/senior_thesis/combined_UKESM_files/",
 ```
 
 
-Plot 3 panel figure showing short-term (2014-2034), long-term (2079-2099), and difference in average downward flux of POC at 100m
+7. Plot 3 panel figure showing short-term (2014-2034), long-term (2079-2099), and difference in average downward flux of POC at 100m
 ```{r}
 setwd("~/senior_thesis/")
 source('plot_epc100_avg.R')
@@ -355,48 +390,48 @@ source('plot_epc100_avg.R')
 #CMCC
 plot_epc100_avg(wd = "~/senior_thesis/combined_CMCC_files",
                 nc_file='epc100_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc',
-                 model.name = "CMCC",
+                model.name = "CMCC",
                 lat.name = "latitude",
                 lon.name = "longitude")
 
 #CESM
 plot_epc100_avg(wd = "~/senior_thesis/combined_CESM_files",
                 nc_file='epc100_Omon_CESM2_ssp585_r10i1p1f1_gn_201501-210012.nc',
-                 model.name = "CESM",
+                model.name = "CESM",
                 lat.name = "nlat",
                 lon.name = "nlon")
 
 #EC-Earth
 plot_epc100_avg(wd = "~/senior_thesis/combined_EC-Earth_files",
                 nc_file='epc100_Omon_EC-Earth3-CC_ssp585_r1i1p1f1_gn_201501-210012.nc',
-                 model.name = "EC-Earth",
+                model.name = "EC-Earth",
                 lat.name = "latitude",
                 lon.name = "longitude")
 
 #GFDL
 plot_epc100_avg(wd = "~/senior_thesis/combined_GFDL_files",
                 nc_file='epc100_Omon_GFDL-ESM4_ssp585_r1i1p1f1_gr_201501-210012.nc',
-                 model.name = "GFDL",
+                model.name = "GFDL",
                 lat.name = "lat",
                 lon.name = "lon")
 
 #MPI - make sure to go in and uncomment the scale_y_continuous lines or else this will plot upside down
 plot_epc100_avg(wd = "~/senior_thesis/combined_MPI_files",
                 nc_file='epc100_Omon_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_201501-210012.nc',
-                 model.name = "MPI",
+                model.name = "MPI",
                 lat.name = "latitude",
                 lon.name = "longitude")
 
 #UKESM
 plot_epc100_avg(wd = "~/senior_thesis/combined_UKESM_files",
                 nc_file='epc100_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc',
-                 model.name = "UKESM",
+                model.name = "UKESM",
                 lat.name = "latitude",
                 lon.name = "longitude")
 ```
 
 
-Plot 6 panel figure showing change in average POC flux at 100m in 6 models
+8. Plot 6 panel figure showing change in average POC flux at 100m in 6 models
 ```{r}
 #run this in a R script, for some reason readPNG doesn't work in the notebook
 
@@ -416,7 +451,7 @@ ggsave(grid.combine, filename = "faceted_epc100_avg.png", device = "png", path =
 
 ```
 
-Calculate maximum annual MLD in the short-term (2014-2034) and long-term (2077-2097) units: m
+9. Calculate maximum annual MLD in the short-term (2014-2034) and long-term (2077-2097) units: m
 ```{r}
 setwd("~/senior_thesis/")
 source('calc_MLD_max.R')
@@ -426,10 +461,10 @@ get_time(data.path = "~/senior_thesis/combined_CESM_files/",
          file.name = 'mlotst_Omon_CESM2_ssp585_r10i1p1f1_gn_201501-210012.nc')
 
 calc_MLD_max(wd = "~/senior_thesis/combined_CESM_files", 
-            nc.file= 'mlotst_Omon_CESM2_ssp585_r10i1p1f1_gn_201501-210012.nc',
-            seq.start.st = 17, 
-            seq.start.lt = 774,
-            model.name = "CESM")
+             nc.file= 'mlotst_Omon_CESM2_ssp585_r10i1p1f1_gn_201501-210012.nc',
+             seq.start.st = 17, 
+             seq.start.lt = 774,
+             model.name = "CESM")
 
 ##CMCC ------------
 get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
@@ -437,53 +472,53 @@ get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
 
 
 calc_MLD_max(wd = "~/senior_thesis/combined_CMCC_files", 
-            nc.file= 'mlotst_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc',
-            seq.start.st = 2, 
-            seq.start.lt = 759,
-            model.name = "CMCC")
+             nc.file= 'mlotst_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc',
+             seq.start.st = 2, 
+             seq.start.lt = 759,
+             model.name = "CMCC")
 
 ##EC-Earth ----------
 get_time(data.path = "~/senior_thesis/combined_EC-Earth_files/",
          file.name = 'mlotst_Omon_EC-Earth3-CC_ssp585_r1i1p1f1_gn_201501-210012.nc')
 
 calc_MLD_max(wd = "~/senior_thesis/combined_EC-Earth_files", 
-            nc.file= 'mlotst_Omon_EC-Earth3-CC_ssp585_r1i1p1f1_gn_201501-210012.nc',
-            seq.start.st = 1, 
-            seq.start.lt = 757,
-            model.name = "EC-Earth")
+             nc.file= 'mlotst_Omon_EC-Earth3-CC_ssp585_r1i1p1f1_gn_201501-210012.nc',
+             seq.start.st = 1, 
+             seq.start.lt = 757,
+             model.name = "EC-Earth")
 
 ##GFDL ----------
 get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
          file.name = 'mlotst_Omon_GFDL-ESM4_ssp585_r1i1p1f1_gr_201501-210012.nc')
 
 calc_MLD_max(wd = "~/senior_thesis/combined_GFDL_files", 
-            nc.file= 'mlotst_Omon_GFDL-ESM4_ssp585_r1i1p1f1_gr_201501-210012.nc',
-            seq.start.st = 2, 
-            seq.start.lt = 759,
-            model.name = "GFDL")
+             nc.file= 'mlotst_Omon_GFDL-ESM4_ssp585_r1i1p1f1_gr_201501-210012.nc',
+             seq.start.st = 2, 
+             seq.start.lt = 759,
+             model.name = "GFDL")
 
 ## MPI --------------
 get_time(data.path = "~/senior_thesis/combined_MPI_files/",
          file.name = 'mlotst_Omon_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_201501-210012.nc')
 
 calc_MLD_max(wd = "~/senior_thesis/combined_MPI_files", 
-            nc.file= 'mlotst_Omon_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_201501-210012.nc',
-            seq.start.st = 1, 
-            seq.start.lt = 697,
-            model.name = "MPI")
+             nc.file= 'mlotst_Omon_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_201501-210012.nc',
+             seq.start.st = 1, 
+             seq.start.lt = 697,
+             model.name = "MPI")
 
 ## UKESM -------- come back and troubleshoot this
 get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
          file.name = 'mlotst_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc')
 
 calc_MLD_max(wd = "~/senior_thesis/combined_UKESM_files", 
-            nc.file= 'mlotst_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc',
-            seq.start.st = 30, 
-            seq.start.lt = 785,
-            model.name = "UKESM")
+             nc.file= 'mlotst_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc',
+             seq.start.st = 30, 
+             seq.start.lt = 785,
+             model.name = "UKESM")
 ```
 
-Plot 3 panel figure showing short-term (2014-2034), long-term (2079-2099), and difference in average maximum annual MLD
+10. Plot 3 panel figure showing short-term (2014-2034), long-term (2079-2099), and difference in average maximum annual MLD
 ```{r}
 setwd("~/senior_thesis/")
 source('plot_MLD_max.R')
@@ -532,7 +567,7 @@ plot_MLD_max(wd = "~/senior_thesis/combined_UKESM_files",
 
 ```
 
-Plot 6 panel figure showing change in MLDmax for all 6 models
+11. Plot 6 panel figure showing change in MLDmax for all 6 models
 ```{r}
 #run this in a R script, for some reason readPNG doesn't work in the notebook
 
@@ -553,38 +588,23 @@ ggsave(grid.combine, filename = "faceted_MLDmax.png", device = "png", path = "~/
 ```
 
 
-Calculate POC flux at the MLDmax
+12. Calculate POC flux at the MLDmax
 ```{r}
 setwd("~/senior_thesis/")
 source('libraries.R')
 source('calc_expc_avg_new.R')
-source('calc_expc_avg_st.R')
-source('calc_expc_avg_lt.R')
 source('get_time.R')
 
 #every model but UKESM was averaged from 2015-2035 and 2079-2099, UKESM was 2015-2035 and 2077-2097
+#be sure to get the right time steps before you calculate
 
 ## CESM --------------
+
+#go into function and convert from cm to m (just for this model)
 
 #start = 03/01/14, end = 02/08/99
 get_time(data.path = "~/senior_thesis/combined_CESM_files/",
          file.name = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc')
-
-#Short term start: 03/01/15
-calc_expc_avg_st(wd = "~/senior_thesis/combined_CESM_files",
-              nc.file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
-              model.name = "CESM",
-              start.st = 2,
-              lon.length = 1:320,
-              lat.length = 1:384)
-
-#Long term start: 02/13/79
-calc_expc_avg_lt(wd = "~/senior_thesis/combined_CESM_files",
-              nc.file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
-              model.name = "CESM",
-              start.lt = 66,
-              lon.length = 1:320,
-              lat.length = 1:384)
 
 #new attempt
 calc_expc_avg(wd = "~/senior_thesis/combined_CESM_files",
@@ -602,22 +622,6 @@ calc_expc_avg(wd = "~/senior_thesis/combined_CESM_files",
 get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
          file.name = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc')
 
-#Short term start 05/23/15
-calc_expc_avg_st(wd = "~/senior_thesis/combined_CMCC_files",
-              nc.file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
-              model.name = "CMCC",
-              start.st = 1,
-              lon.length = 1:362,
-              lat.length = 1:292)
-
-#Long term start: 05/07/79
-calc_expc_avg_lt(wd = "~/senior_thesis/combined_CMCC_files",
-              nc.file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
-              model.name = "CMCC",
-              start.lt = 65,
-              lon.length = 1:362,
-              lat.length = 1:292)
-
 calc_expc_avg(wd = "~/senior_thesis/combined_CMCC_files",
               nc.file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
               model.name = "CMCC",
@@ -631,22 +635,6 @@ calc_expc_avg(wd = "~/senior_thesis/combined_CMCC_files",
 #start = 07/02/15, 07/02/00
 get_time(data.path = "~/senior_thesis/combined_EC-Earth_files/", file.name = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc')
 
-#Short term start: 07/02/15
-calc_expc_avg_st(wd = "~/senior_thesis/combined_EC-Earth_files",
-              nc.file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
-              model.name = "EC-Earth",
-              start.st = 1, 
-              lon.length = 1:362,
-              lat.length = 1:292)
-
-#Long term start: 07/02/79
-calc_expc_avg_lt(wd = "~/senior_thesis/combined_EC-Earth_files",
-              nc.file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
-              model.name = "EC-Earth",
-              start.lt = 65,
-              lon.length = 1:362,
-              lat.length = 1:292)
-
 calc_expc_avg(wd = "~/senior_thesis/combined_EC-Earth_files",
               nc.file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
               model.name = "EC-Earth",
@@ -659,22 +647,6 @@ calc_expc_avg(wd = "~/senior_thesis/combined_EC-Earth_files",
 
 get_time(data.path = "~/senior_thesis/combined_GFDL_files/", file.name = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc')
 
-#Short term start: 05/23/15
-calc_expc_avg_st(wd = "~/senior_thesis/combined_GFDL_files",
-              nc.file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
-              model.name = "GFDL",
-              start.st = 1,
-              lon.length = 1:360,
-              lat.length = 1:180)
-
-#Long-term start: 05/07/79
-calc_expc_avg_lt(wd = "~/senior_thesis/combined_GFDL_files",
-              nc.file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
-              model.name = "GFDL",
-              start.lt = 65,
-              lon.length = 1:360,
-              lat.length = 1:180)
-
 calc_expc_avg(wd = "~/senior_thesis/combined_GFDL_files",
               nc.file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
               model.name = "GFDL",
@@ -686,22 +658,6 @@ calc_expc_avg(wd = "~/senior_thesis/combined_GFDL_files",
 
 #start = 07/02/15, end = 07/02/00
 get_time(data.path = "~/senior_thesis/combined_MPI_files/", file.name = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc')
-
-#07/02/15
-calc_expc_avg_st(wd = "~/senior_thesis/combined_MPI_files",
-              nc.file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
-              model.name = "MPI",
-              start.st = 1, 
-              lon.length = 1:802,
-              lat.length = 1:404)
-
-#07/02/79
-calc_expc_avg_lt(wd = "~/senior_thesis/combined_MPI_files",
-              nc.file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
-              model.name = "MPI",
-              start.lt = 65,
-              lon.length = 1:802,
-              lat.length = 1:404)
 
 calc_expc_avg(wd = "~/senior_thesis/combined_MPI_files",
               nc.file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
@@ -737,55 +693,56 @@ saveRDS(expc_change, file = "UKESM_expc_change.Rds", ascii = TRUE)
 
 ```
 
-Plot 3 panel figure showing short-term (2015-2035), long-term (2079-2099), and difference in average POC flux at the MLDmax
+13. Plot 3 panel figure showing short-term (2015-2035), long-term (2079-2099), and difference in average POC flux at the MLDmax
 ```{r}
 setwd("~/senior_thesis/")
 source('plot_expc_avg.R')
 
 #CESM
+
 plot_expc_avg(wd = "~/senior_thesis/combined_CESM_files",
-             nc_file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
-             model.name = "CESM",
-             lat.name = "nlat",
-             lon.name = "nlon")
+              nc_file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+              model.name = "CESM",
+              lat.name = "nlat",
+              lon.name = "nlon")
 
 #CMCC
 plot_expc_avg(wd = "~/senior_thesis/combined_CMCC_files",
-             nc_file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
-             model.name = "CMCC",
-             lat.name = "latitude",
-             lon.name = "longitude")
+              nc_file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
+              model.name = "CMCC",
+              lat.name = "latitude",
+              lon.name = "longitude")
 
 #EC-Earth
 plot_expc_avg(wd = "~/senior_thesis/combined_EC-Earth_files",
-             nc_file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
-             model.name = "EC-Earth",
-             lat.name = "latitude",
-             lon.name = "longitude")
+              nc_file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+              model.name = "EC-Earth",
+              lat.name = "latitude",
+              lon.name = "longitude")
 
 #GFDL
 plot_expc_avg(wd = "~/senior_thesis/combined_GFDL_files",
-             nc_file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
-             model.name = "GFDL",
-             lat.name = "lat",
-             lon.name = "lon")
+              nc_file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+              model.name = "GFDL",
+              lat.name = "lat",
+              lon.name = "lon")
 
 #MPI
 plot_expc_avg(wd = "~/senior_thesis/combined_MPI_files",
-             nc_file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
-             model.name = "MPI",
-             lat.name = "latitude",
-             lon.name = "longitude")
+              nc_file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+              model.name = "MPI",
+              lat.name = "latitude",
+              lon.name = "longitude")
 
 #UKESM
 plot_expc_avg(wd = "~/senior_thesis/UKESM_data",
-             nc_file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc',
-             model.name = "UKESM",
-             lat.name = "latitude",
-             lon.name = "longitude")
+              nc_file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc',
+              model.name = "UKESM",
+              lat.name = "latitude",
+              lon.name = "longitude")
 ```
 
-Plot 6 panel figure showing POC flux change at MLDmax for all models
+14. Plot 6 panel figure showing POC flux change at MLDmax for all models
 ```{r}
 setwd("~/senior_thesis/figures/")
 A <- readPNG('CESM_expc_change.png')
@@ -793,25 +750,28 @@ B <- readPNG('CMCC_expc_change.png')
 C <- readPNG('EC-Earth_expc_change.png')
 D <- readPNG('GFDL_expc_change.png')
 E <- readPNG('MPI_expc_change.png')
+f <- readPNG('UKESM_expc_change.png')
 
 
 grid.combine <- grid.arrange(rasterGrob(A),rasterGrob(B),rasterGrob(C),
-                             rasterGrob(D),rasterGrob(E),ncol=2, nrow=3)
+                             rasterGrob(D),rasterGrob(E),rasterGrob(f),ncol=2, nrow=3)
 
 ggsave(grid.combine, filename = "faceted_expc.png", device = "png", path = "~/senior_thesis/figures/", 
        dpi = 500, width = 16, height = 12, units = "cm")
 ```
 
-Calculate and plot change in POC flux difference (MLDmax - 100m) - 3 panel fig for each model and 6 panel fig of all models 
+15. Calculate and plot change in POC flux difference (MLDmax - 100m) - 3 panel fig for each model and 6 panel fig of all models 
 ```{r}
 setwd('~/senior_thesis')
 source('calc_depth_horizon_diff.R')
+source('plot_depth_horizon_diff.R')
 
 calc_depth_horizon_diff("CESM")
 calc_depth_horizon_diff("CMCC")
 calc_depth_horizon_diff("EC-Earth")
 calc_depth_horizon_diff("GFDL")
 calc_depth_horizon_diff("MPI")
+calc_depth_horizon_diff("UKESM")
 
 #CESM
 plot_depth_horizon_diff(wd = "~/senior_thesis/combined_CESM_files",
@@ -841,6 +801,13 @@ plot_depth_horizon_diff(wd = "~/senior_thesis/combined_GFDL_files",
                         lat.name = "lat",
                         lon.name = "lon")
 
+#UKESM
+plot_depth_horizon_diff(wd = "~/senior_thesis/UKESM_data",
+                        nc_file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc',
+                        model.name = "UKESM",
+                        lat.name = "latitude",
+                        lon.name = "longitude")
+
 #MPI
 plot_depth_horizon_diff(wd = "~/senior_thesis/combined_MPI_files",
                         nc_file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
@@ -856,10 +823,11 @@ B <- readPNG('CMCC_expc-epc100.png')
 C <- readPNG('EC-Earth_expc-epc100.png')
 D <- readPNG('GFDL_expc-epc100.png')
 E <- readPNG('MPI_expc-epc100.png')
+f <- readPNG('UKESM_expc-epc100.png')
 
 
 grid.combine <- grid.arrange(rasterGrob(A),rasterGrob(B),rasterGrob(C),
-                             rasterGrob(D),rasterGrob(E),ncol=2, nrow=3)
+                             rasterGrob(D),rasterGrob(E), rasterGrob(f),ncol=2, nrow=3)
 
 ggsave(grid.combine, filename = "faceted_expc-epc100.png", device = "png", path = "~/senior_thesis/figures/", 
        dpi = 500, width = 16, height = 12, units = "cm")
@@ -868,7 +836,7 @@ ggsave(grid.combine, filename = "faceted_expc-epc100.png", device = "png", path 
 ```
 
 
-Plot CESM depth profiles in various locations
+16. Plot CESM depth profiles in various locations
 ```{r}
 setwd("~/senior_thesis/combined_CESM_files/")
 nc_data <- nc_open('expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc')
@@ -966,7 +934,7 @@ ggsave(grid.combine, filename = "faceted_depth_profiles.png", device = "png", pa
 
 ```
 
-Organizing depth profile output for table info
+17. Organizing depth profile output for table info
 ```{r}
 #combine table output csv files into one file
 files <- list.files("~/senior_thesis/depth_profiles/", pattern = "*.csv$")
@@ -977,57 +945,69 @@ write.csv(binded_file, "table_info.csv")
 
 ```
 
-Calculate global POC flux at 100m
+18. Calculate global POC flux at 100m
 ```{r}
+setwd("~/senior_thesis/")
+source('global_POC_flux.R')
 
 #downloading CESM cell area files
 save.path <- "~/senior_thesis/cmip6_data"
 
 cmip6.index <- "http://esgf-data.ucar.edu/thredds/fileServer/esg_dataroot/CMIP6/ScenarioMIP/NCAR/CESM2/ssp585/r10i1p1f1/Ofx/areacello/gn/v20200528/areacello_Ofx_CESM2_ssp585_r10i1p1f1_gn.nc"
 
+get_nc_thredds(cmip6.index, save.path)
+
+#Calculate global CESM fluxes
+global_flux(wd = "~/senior_thesis/combined_CESM_files",
+            nc.file = 'areacello_Ofx_CESM2_ssp585_r10i1p1f1_gn.nc',
+            model.name = "CESM")
+
+
+#Downloading MPI data
+cmip6.index <- "http://esgf3.dkrz.de/thredds/fileServer/cmip6/ScenarioMIP/DKRZ/MPI-ESM1-2-HR/ssp585/r1i1p1f1/Ofx/areacello/gn/v20190710/areacello_Ofx_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn.nc"
 
 get_nc_thredds(cmip6.index, save.path)
 
-setwd("~/senior_thesis/cmip6_data")
-nc_data <- nc_open('areacello_Ofx_CESM2_ssp585_r10i1p1f1_gn.nc')
+global_flux(wd = "~/senior_thesis/cmip6_data",
+            nc.file = 'areacello_Ofx_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn.nc',
+            model.name = "MPI")
 
-#get file metadata
-sink('areacello_Ofx_CESM2_ssp585_r10i1p1f1_gn.txt')
-print(nc_data)
-setwd(save.path)
-sink()
+#Downloading EC-Earth data
 
-#get longitude and latitude
-lon <- ncvar_get(nc_data, "nlon")
-lat <- ncvar_get(nc_data, "nlat")
+get_nc_thredds(cmip6.index = "http://esg-dn2.nsc.liu.se/thredds/fileServer/esg_dataroot1/cmip6data/CMIP6/CMIP/EC-Earth-Consortium/EC-Earth3/historical/r1i1p1f1/Ofx/areacello/gn/v20200918/areacello_Ofx_EC-Earth3_historical_r1i1p1f1_gn.nc", save.path = "~/senior_thesis/cmip6_data")
 
-#get area
-area <- ncvar_get(nc_data, "areacello")
+global_flux(wd = "~/senior_thesis/cmip6_data",
+            nc.file = 'areacello_Ofx_EC-Earth3_historical_r1i1p1f1_gn.nc',
+            model.name = "EC-Earth")
 
-#read in global POC flux at 100m data
-epc100_avg_st <- readRDS("~/senior_thesis/plotting_dataframes/epc100_avg_st.Rds")
-epc100_avg_lt <- readRDS("~/senior_thesis/plotting_dataframes/epc100_avg_lt.Rds")
+#UKESM - download and calculation
+get_nc_thredds(cmip6.index = "http://esgf-data3.ceda.ac.uk/thredds/fileServer/esg_cmip6/CMIP6/CMIP/MOHC/UKESM1-0-LL/piControl/r1i1p1f2/Ofx/areacello/gn/v20190705/areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc", save.path = "~/senior_thesis/cmip6_data")
 
-global_flux_st <- epc100_avg_st*area
+global_flux(wd = "~/senior_thesis/cmip6_data",
+            nc.file = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+            model.name = "UKESM")
 
-sum_st <- sum(global_flux_st, na.rm = TRUE)
+#CMCC - download and calculation
 
-#SHORT TERM total global POC flux in Pt C / yr = 7.12
-sum_st <- sum_st*12.01/1000000000000000
+get_nc_thredds(cmip6.index = "http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/Ofx/areacello/gn/v20210114/areacello_Ofx_CMCC-ESM2_historical_r1i1p1f1_gn.nc", save.path = "~/senior_thesis/cmip6_data")
 
-global_flux_lt <- epc100_avg_lt*area
+global_flux(wd = "~/senior_thesis/cmip6_data",
+            nc.file = 'areacello_Ofx_CMCC-ESM2_historical_r1i1p1f1_gn.nc',
+            model.name = "CMCC")
 
-sum_lt <- sum(global_flux_lt, na.rm = TRUE)
+#GFDL - download and calculation
+get_nc_thredds(cmip6.index = "http://esgdata.gfdl.noaa.gov/thredds/fileServer/gfdl_dataroot4/CMIP/NOAA-GFDL/GFDL-ESM4/historical/r1i1p1f1/Ofx/areacello/gr/v20190726/areacello_Ofx_GFDL-ESM4_historical_r1i1p1f1_gr.nc", save.path = "~/senior_thesis/cmip6_data")
 
-#LONG TERM total global POC flux in Pt C / yr = 6.81
-sum_lt <- sum_lt*12.01/1000000000000000
-
-percent_change <- (sum_st-sum_lt)/sum_st*100
+global_flux(wd = "~/senior_thesis/cmip6_data",
+            nc.file = 'areacello_Ofx_GFDL-ESM4_historical_r1i1p1f1_gr.nc',
+            model.name = "GFDL")
 
 ```
 
-Formatting data for plotting POC flux transects
+19. Formatting data for plotting POC flux transects
 ```{r}
+setwd("~/senior_thesis/")
+source('calc_expc_transect.R')
 
 #Atlantic Transect
 calc_transect(lon = 10, save.name.st = "lon10_transect_st", save.name.lt = "lon10_transect_lt")
@@ -1037,7 +1017,7 @@ calc_transect(lon = 205, save.name.st = "lon205_transect_st", save.name.lt = "lo
 
 ```
 
-Plotting POC flux transects
+20. Plotting POC flux transects
 ```{r}
 #loading objects
 atlantic_st <- readRDS("~/senior_thesis/plotting_dataframes/lon10_transect_st.Rds")
@@ -1066,4 +1046,564 @@ plot_transect(lon = 205,
 
 ```
 
+21. Calculate POC flux at 200m, 500m, 1000m for all models
+```{r}
+
+setwd('~/senior_thesis/')
+source('libraries.R')
+source('calc_expc_meters.R')
+
+#every model but UKESM was averaged from 2015-2035 and 2079-2099, UKESM was 2015-2035 and 2077-2097
+
+## CESM --------------
+
+#this model has depth in cm not m, so change relevent section in the function, then change back for the rest of the models
+
+#200m
+calc_expc_meters(wd = "~/senior_thesis/combined_CESM_files",
+                 nc.file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+                 model.name = "CESM",
+                 start.st = 2,
+                 start.lt = 66,
+                 lon.length = 1:320,
+                 lat.length = 1:384,
+                 depth = 200)
+
+#500m
+calc_expc_meters(wd = "~/senior_thesis/combined_CESM_files",
+                 nc.file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+                 model.name = "CESM",
+                 start.st = 2,
+                 start.lt = 66,
+                 lon.length = 1:320,
+                 lat.length = 1:384,
+                 depth = 500)
+#1000
+calc_expc_meters(wd = "~/senior_thesis/combined_CESM_files",
+                 nc.file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+                 model.name = "CESM",
+                 start.st = 2,
+                 start.lt = 66,
+                 lon.length = 1:320,
+                 lat.length = 1:384,
+                 depth = 1000)
+
+## CMCC ----------------
+
+#200
+calc_expc_meters(wd = "~/senior_thesis/combined_CMCC_files",
+                 nc.file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "CMCC",
+                 start.st = 1,
+                 start.lt = 65,
+                 lon.length = 1:362,
+                 lat.length = 1:292,
+                 depth = 200)
+#500
+calc_expc_meters(wd = "~/senior_thesis/combined_CMCC_files",
+                 nc.file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "CMCC",
+                 start.st = 1,
+                 start.lt = 65,
+                 lon.length = 1:362,
+                 lat.length = 1:292,
+                 depth = 500)
+#1000
+calc_expc_meters(wd = "~/senior_thesis/combined_CMCC_files",
+                 nc.file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "CMCC",
+                 start.st = 1,
+                 start.lt = 65,
+                 lon.length = 1:362,
+                 lat.length = 1:292,
+                 depth = 1000)
+
+##EC-Earth ----------
+
+#200
+calc_expc_meters(wd = "~/senior_thesis/combined_EC-Earth_files",
+                 nc.file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "EC-Earth",
+                 start.st = 1,
+                 start.lt = 65,
+                 lon.length = 1:362,
+                 lat.length = 1:292,
+                 depth = 200)
+
+#500
+calc_expc_meters(wd = "~/senior_thesis/combined_EC-Earth_files",
+                 nc.file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "EC-Earth",
+                 start.st = 1,
+                 start.lt = 65,
+                 lon.length = 1:362,
+                 lat.length = 1:292,
+                 depth = 500)
+
+#1000
+calc_expc_meters(wd = "~/senior_thesis/combined_EC-Earth_files",
+                 nc.file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "EC-Earth",
+                 start.st = 1,
+                 start.lt = 65,
+                 lon.length = 1:362,
+                 lat.length = 1:292,
+                 depth = 1000)
+
+##GFDL -------
+
+#200
+calc_expc_meters(wd = "~/senior_thesis/combined_GFDL_files",
+                 nc.file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+                 model.name = "GFDL",
+                 start.st = 1,
+                 start.lt = 65,
+                 lon.length = 1:360,
+                 lat.length = 1:180,
+                 depth = 200)
+
+#500
+calc_expc_meters(wd = "~/senior_thesis/combined_GFDL_files",
+                 nc.file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+                 model.name = "GFDL",
+                 start.st = 1,
+                 start.lt = 65,
+                 lon.length = 1:360,
+                 lat.length = 1:180,
+                 depth = 500)
+#1000
+calc_expc_meters(wd = "~/senior_thesis/combined_GFDL_files",
+                 nc.file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+                 model.name = "GFDL",
+                 start.st = 1,
+                 start.lt = 65,
+                 lon.length = 1:360,
+                 lat.length = 1:180,
+                 depth = 1000)
+
+##MPI --------
+
+#200
+calc_expc_meters(wd = "~/senior_thesis/combined_MPI_files",
+                 nc.file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "MPI",
+                 start.st = 1,
+                 start.lt = 65,
+                 lon.length = 1:802,
+                 lat.length = 1:404,
+                 depth = 200)
+#500
+calc_expc_meters(wd = "~/senior_thesis/combined_MPI_files",
+                 nc.file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "MPI",
+                 start.st = 1,
+                 start.lt = 65,
+                 lon.length = 1:802,
+                 lat.length = 1:404,
+                 depth = 500)
+
+#1000
+calc_expc_meters(wd = "~/senior_thesis/combined_MPI_files",
+                 nc.file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "MPI",
+                 start.st = 1,
+                 start.lt = 65,
+                 lon.length = 1:802,
+                 lat.length = 1:404,
+                 depth = 1000)
+
+##UKESM ----------
+
+setwd('~/senior_thesis/')
+source('calc_meters_UKESM.R')
+
+#200
+UKESM_meters(200)
+
+#500
+UKESM_meters(500)
+
+#1000
+UKESM_meters(1000)
+
+```
+
+22. Plot 3 panel figure showing short-term (2015-2035), long-term (2079-2099), and difference in average POC flux at 200m, 500m, 1000m
+```{r}
+
+source('plot_expc_meters.R')
+
+#CESM
+plot_expc_meters(wd = "~/senior_thesis/combined_CESM_files",
+                 nc_file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+                 model.name = "CESM",
+                 lat.name = "nlat",
+                 lon.name = "nlon",
+                 depth = 200)
+
+#CMCC
+plot_expc_meters(wd = "~/senior_thesis/combined_CMCC_files",
+                 nc_file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "CMCC",
+                 lat.name = "latitude",
+                 lon.name = "longitude",
+                 depth = 200)
+
+#EC-Earth
+plot_expc_meters(wd = "~/senior_thesis/combined_EC-Earth_files",
+                 nc_file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "EC-Earth",
+                 lat.name = "latitude",
+                 lon.name = "longitude",
+                 depth = 200)
+
+#GFDL
+plot_expc_meters(wd = "~/senior_thesis/combined_GFDL_files",
+                 nc_file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+                 model.name = "GFDL",
+                 lat.name = "lat",
+                 lon.name = "lon",
+                 depth = 200)
+
+#MPI - uncheck y axis flip and source
+plot_expc_meters(wd = "~/senior_thesis/combined_MPI_files",
+                 nc_file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "MPI",
+                 lat.name = "latitude",
+                 lon.name = "longitude",
+                 depth = 200)
+
+#UKESM
+plot_expc_meters(wd = "~/senior_thesis/UKESM_data",
+                 nc_file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc',
+                 model.name = "UKESM",
+                 lat.name = "latitude",
+                 lon.name = "longitude",
+                 depth = 200)
+
+## 500m -----------
+
+#be sure to go change the depth in the titles first
+
+#CESM
+plot_expc_meters(wd = "~/senior_thesis/combined_CESM_files",
+                 nc_file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+                 model.name = "CESM",
+                 lat.name = "nlat",
+                 lon.name = "nlon",
+                 depth = 500)
+
+#CMCC
+plot_expc_meters(wd = "~/senior_thesis/combined_CMCC_files",
+                 nc_file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "CMCC",
+                 lat.name = "latitude",
+                 lon.name = "longitude",
+                 depth = 500)
+
+#EC-Earth
+plot_expc_meters(wd = "~/senior_thesis/combined_EC-Earth_files",
+                 nc_file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "EC-Earth",
+                 lat.name = "latitude",
+                 lon.name = "longitude",
+                 depth = 500)
+
+#GFDL
+plot_expc_meters(wd = "~/senior_thesis/combined_GFDL_files",
+                 nc_file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+                 model.name = "GFDL",
+                 lat.name = "lat",
+                 lon.name = "lon",
+                 depth = 500)
+
+#MPI - uncheck y axis flip code
+plot_expc_meters(wd = "~/senior_thesis/combined_MPI_files",
+                 nc_file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "MPI",
+                 lat.name = "latitude",
+                 lon.name = "longitude",
+                 depth = 500)
+
+#UKESM
+plot_expc_meters(wd = "~/senior_thesis/UKESM_data",
+                 nc_file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc',
+                 model.name = "UKESM",
+                 lat.name = "latitude",
+                 lon.name = "longitude",
+                 depth = 500)
+
+## 1000m ----------------
+
+#CESM
+plot_expc_meters(wd = "~/senior_thesis/combined_CESM_files",
+                 nc_file = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+                 model.name = "CESM",
+                 lat.name = "nlat",
+                 lon.name = "nlon",
+                 depth = 1000)
+
+#CMCC
+plot_expc_meters(wd = "~/senior_thesis/combined_CMCC_files",
+                 nc_file = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "CMCC",
+                 lat.name = "latitude",
+                 lon.name = "longitude",
+                 depth = 1000)
+
+#EC-Earth
+plot_expc_meters(wd = "~/senior_thesis/combined_EC-Earth_files",
+                 nc_file = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "EC-Earth",
+                 lat.name = "latitude",
+                 lon.name = "longitude",
+                 depth = 1000)
+
+#GFDL
+plot_expc_meters(wd = "~/senior_thesis/combined_GFDL_files",
+                 nc_file = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+                 model.name = "GFDL",
+                 lat.name = "lat",
+                 lon.name = "lon",
+                 depth = 1000)
+
+#MPI - uncheck y axis flip code
+plot_expc_meters(wd = "~/senior_thesis/combined_MPI_files",
+                 nc_file = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 model.name = "MPI",
+                 lat.name = "latitude",
+                 lon.name = "longitude",
+                 depth = 1000)
+
+#UKESM
+plot_expc_meters(wd = "~/senior_thesis/UKESM_data",
+                 nc_file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc',
+                 model.name = "UKESM",
+                 lat.name = "latitude",
+                 lon.name = "longitude",
+                 depth = 1000)
+
+```
+
+23. Plot 6 panel figures showing POC flux change in every model for 200m,500m, and 1000m
+```{r}
+#readPNG tends not to work in rstudio, so run these in the terminal
+
+##200m --------------
+setwd("~/senior_thesis/figures/")
+A <- readPNG('CESM_200_expc_change.png')
+B <- readPNG('CMCC_200_expc_change.png')
+C <- readPNG('EC-Earth_200_expc_change.png')
+D <- readPNG('GFDL_200_expc_change.png')
+E <- readPNG('MPI_200_expc_change.png')
+f <- readPNG('UKESM_200_expc_change.png')
+
+
+grid.combine <- grid.arrange(rasterGrob(A),rasterGrob(B),rasterGrob(C),
+                             rasterGrob(D),rasterGrob(E),rasterGrob(f),ncol=2, nrow=3)
+
+ggsave(grid.combine, filename = "faceted_expc_200.png", device = "png", path = "~/senior_thesis/figures/", 
+       dpi = 500, width = 16, height = 12, units = "cm")
+
+#500m ------------
+setwd("~/senior_thesis/figures/")
+A <- readPNG('CESM_500_expc_change.png')
+B <- readPNG('CMCC_500_expc_change.png')
+C <- readPNG('EC-Earth_500_expc_change.png')
+D <- readPNG('GFDL_500_expc_change.png')
+E <- readPNG('MPI_500_expc_change.png')
+f <- readPNG('UKESM_500_expc_change.png')
+
+
+grid.combine <- grid.arrange(rasterGrob(A),rasterGrob(B),rasterGrob(C),
+                             rasterGrob(D),rasterGrob(E),rasterGrob(f),ncol=2, nrow=3)
+
+ggsave(grid.combine, filename = "faceted_expc_500.png", device = "png", path = "~/senior_thesis/figures/", 
+       dpi = 500, width = 16, height = 12, units = "cm")
+
+##1000m ---------------
+setwd("~/senior_thesis/figures/")
+A <- readPNG('CESM_1000_expc_change.png')
+B <- readPNG('CMCC_1000_expc_change.png')
+C <- readPNG('EC-Earth_1000_expc_change.png')
+D <- readPNG('GFDL_1000_expc_change.png')
+E <- readPNG('MPI_1000_expc_change.png')
+f <- readPNG('UKESM_1000_expc_change.png')
+
+
+grid.combine <- grid.arrange(rasterGrob(A),rasterGrob(B),rasterGrob(C),
+                             rasterGrob(D),rasterGrob(E),rasterGrob(f),ncol=2, nrow=3)
+
+ggsave(grid.combine, filename = "faceted_expc_1000.png", device = "png", path = "~/senior_thesis/figures/", 
+       dpi = 500, width = 16, height = 12, units = "cm")
+
+```
+
+24. Calculating global flux of expc and epc100 for every year (1850-2100) in every model - to make time series figure
+```{r}
+
+setwd('~/senior_thesis/')
+source('libraries.R')
+source('get_time.R')
+source('calc_global_time_series.R')
+
+## CESM ---------------
+
+#historical CESM 10/24/48 , 16 = 01/22/50
+get_time(data.path = "~/senior_thesis/combined_CESM_files/",
+         file.name = 'epc100_Omon_CESM2_historical_r10i1p1f1_gn_185001-201412.nc')
+
+#future CESM 17 = 01/12/15
+get_time(data.path = "~/senior_thesis/combined_CESM_files/",
+         file.name = 'epc100_Omon_CESM2_ssp585_r10i1p1f1_gn_201501-210012.nc')
+
+#CESM time series
+time_series_100(wd = "~/senior_thesis/combined_CESM_files/",
+                model.name = "CESM",
+                his.name = 'epc100_Omon_CESM2_historical_r10i1p1f1_gn_185001-201412.nc',
+                fut.name = 'epc100_Omon_CESM2_ssp585_r10i1p1f1_gn_201501-210012.nc',
+                area.name = 'areacello_Ofx_CESM2_ssp585_r10i1p1f1_gn.nc',
+                start.his = 16, end.his = 1961,
+                start.fut = 17, end.fut = 1014)
+
+## CMCC ---------------
+
+#historical CMCC 17 = 01/12/15
+get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
+         file.name = 'epc100_Omon_CMCC-ESM2_historical_r1i1p1f1_gn_185001-201412.nc')
+
+get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
+         file.name = 'epc100_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc')
+
+#CMCC time series
+time_series_100(wd = "~/senior_thesis/combined_CMCC_files/",
+                model.name = "CMCC",
+                his.name = 'epc100_Omon_CMCC-ESM2_historical_r1i1p1f1_gn_185001-201412.nc',
+                fut.name = 'epc100_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc',
+                area.name = 'areacello_Ofx_CMCC-ESM2_historical_r1i1p1f1_gn.nc',
+                start.his = 1, end.his = 1958,
+                start.fut = 2, end.fut = 1011)
+
+## EC-Earth ------------
+
+#historical 
+get_time(data.path = "~/senior_thesis/combined_EC-Earth_files/",
+         file.name = 'epc100_Omon_EC-Earth3-CC_historical_r1i1p1f1_gn_185001-201412.nc')
+
+#future
+get_time(data.path = "~/senior_thesis/combined_EC-Earth_files/",
+         file.name = 'epc100_Omon_EC-Earth3-CC_ssp585_r1i1p1f1_gn_201501-210012.nc')
+
+
+#EC-Earth time series - still need historical data so can't calculate
+time_series_100(wd = "~/senior_thesis/combined_EC-Earth_files/",
+                model.name = "EC-Earth",
+                his.name = 'epc100_Omon_EC-Earth3-CC_historical_r1i1p1f1_gn_185001-201412.nc',
+                fut.name = 'epc100_Omon_EC-Earth3-CC_ssp585_r1i1p1f1_gn_201501-210012.nc',
+                area.name = 'areacello_Ofx_EC-Earth3_historical_r1i1p1f1_gn.nc',
+                start.his = 1, end.his = 1969,
+                start.fut = 1, end.fut = 1021)
+
+## GFDL -----------------
+
+#GFDL historical
+get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
+         file.name = 'epc100_Omon_GFDL-ESM4_historical_r1i1p1f1_gn_185001-201412.nc')
+
+#GFDL future
+get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
+         file.name = 'epc100_Omon_GFDL-ESM4_ssp585_r1i1p1f1_gr_201501-210012.nc')
+
+#GFDL time series
+time_series_100(wd = "~/senior_thesis/combined_GFDL_files/",
+                model.name = "GFDL",
+                his.name = 'epc100_Omon_GFDL-ESM4_historical_r1i1p1f1_gn_185001-201412.nc',
+                fut.name = 'epc100_Omon_GFDL-ESM4_ssp585_r1i1p1f1_gr_201501-210012.nc',
+                area.name = 'areacello_Ofx_GFDL-ESM4_historical_r1i1p1f1_gr.nc',
+                start.his = 1, end.his = 1958,
+                start.fut = 2, end.fut = 1011)
+
+## MPI -------------
+
+#MPI historical
+get_time(data.path = "~/senior_thesis/combined_MPI_files/",
+         file.name = 'epc100_Omon_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_185001-201412.nc')
+
+#MPI future
+get_time(data.path = "~/senior_thesis/combined_MPI_files/",
+         file.name = 'epc100_Omon_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_201501-210012.nc')
+
+#MPI time series - missing epc100 historical
+time_series_100(wd = "~/senior_thesis/combined_MPI_files/",
+                model.name = "MPI",
+                his.name = 'epc100_Omon_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_185001-201412.nc',
+                fut.name =  'epc100_Omon_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_201501-210012.nc',
+                area.name = 'areacello_Ofx_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn.nc',
+                start.his = 1, end.his = 1969,
+                start.fut = 1, end.fut = 901)
+
+## UKESM -------------
+
+#UKESM historical
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'epc100_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-201412.nc')
+
+#UKESM future
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'epc100_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc')
+
+#UKESM time series
+time_series_100(wd = "~/senior_thesis/combined_UKESM_files/",
+                model.name = "UKESM",
+                his.name = 'epc100_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-201412.nc', 
+                fut.name = 'epc100_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc',
+                area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                start.his = 1, end.his = 1961,
+                start.fut = 1, end.fut = 1016)
+
+
+```
+
+25. Calculate globally integrated POC flux time series at MLDmax
+```{r}
+
+setwd('~/senior_thesis/')
+source('libraries.R')
+source('get_time.R')
+source('calc_time_series_MLDmax.R')
+source('calc_global_time_series.R')
+
+## CESM ----------
+
+#wd = "~/senior_thesis/combined_CESM_files"
+#nc.file = 'mlotst_Omon_CESM2_ssp585_r10i1p1f1_gn_201501-210012.nc'
+#start.fut = 6
+#end.fut = 1014
+#model.name = "CESM"
+
+#historical CESM
+get_time(data.path = "~/senior_thesis/combined_CESM_files/",
+         file.name = 'expc_Oyr_CESM2_historical_r10i1p1f1_gn_1850-2014.nc')
+
+#future CESM
+get_time(data.path = "~/senior_thesis/combined_CESM_files/",
+         file.name = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc')
+
+#creating yearly MLDmax array
+time_series_MLDmax(wd = "~/senior_thesis/combined_CESM_files",
+                   nc.file = 'mlotst_Omon_CESM2_ssp585_r10i1p1f1_gn_201501-210012.nc',
+                   start.fut = 6, end.fut = 1014,
+                   model.name = "CESM")
+
+## CMCC --------------
+
+#creating yearly MLDmax array
+time_series_MLDmax(wd = "~/senior_thesis/combined_CMCC_files",
+                   nc.file = 'mlotst_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc',
+                   start.fut = 6, end.fut = 1014,
+                   model.name = "CESM")
+
+
+
+```
 

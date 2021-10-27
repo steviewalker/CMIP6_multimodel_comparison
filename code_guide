@@ -1,0 +1,107 @@
+Title: OCEAN CARBON EXPORT FLUX PROJECTIONS IN CMIP6 EARTH SYSTEM MODELS ACROSS MULTIPLE EXPORT DEPTH HORIZONS
+
+Authors: Stevie Walker & Hilary Palevsky
+
+All code developed by Stevie Walker
+
+Here is my guide to understanding the project notebook (called thesis_notebook.Rmd as this project started off as my senior thesis at Boston College) and code workflow. 
+
+Since the Earth System Model output I am working with are large, multidimensional nc files, I use a Microsoft Azure server that has much greater computational power than a standard laptop. For running most of the code, I used servers with 16 CPUs (D16s_v3, F16s_v2). This is probably bigger than you'd need for this analysis.
+
+The project notebook is numbered by section, and here is my guide for running the code of every section:
+
+1. source libraries.R to load all needed R packages and download any that are missing
+
+- libraries.R: be sure to add the name of any package you add to the project so if you need to download it again you can.
+
+2. create csv file with the wget urls you need for downloading the data. Everytime I need to download a new set of data, I fill out the function init_cmip6_index with all the parameters I'm looking for, and it returns all the file download urls. Sometimes the function doesn't work right, and if that's the case you'll have to go to the ESGF website, download the wget script, and copy and paste all the urls into an excel sheet, then upload it to the server as a csv file.
+
+3. download the data files from wget urls. 
+
+- get_nc_thredds.R: downloads data files from urls got from step 2. 
+
+4. combine the nc files, which after being downloaded are typically broken up into smaller year sements. Be sure to check whether the files being combined are on the native grid (gn) or the regular grid (gr), and change the code accordingly. Sometimes the files are too large to be combined (like with UKESM expc files). If so, adjust your analysis accordingly.
+
+- combine_ncfiles.R: double check that gn and gr are correct for the data you're downloading
+
+5. pulls out metadata for files in every folder
+
+- grab_metadata.R: make sure there are no files but nc files in the combined files folder
+
+6. calculate POC flux averages at 100m
+
+- get_time.R: I use this function a lot for setting all the start and end time steps in each model calculation. Prints the converted dates for each nc file time step
+- calc_epc100_avg.R
+
+7. plotting POC flux averages at 100m
+
+- plot_epc100_avg.R: MPI plots upsidedown, so be sure to go into the function and uncomment the scale_y_continuous line in every ggplot before your run function for this model
+
+8. 6 panel epc100 figure. Sometimes readPNG doesn't work in the notebook (or in an Rscript). If so, open up R via the command line and run this section from there
+
+9. calculate MLDmax averages
+
+- get_time.R
+- calc_MLD_max.R
+
+10. plotting MLDmax averages
+
+- plot_MLD_max.R: same as with step 7, make sure you uncomment the scale_y_continuous line for MPI
+
+11. 6 panel MLDmax figure. Sometimes readPNG doesn't work in the notebook (or in an Rscript). If so, open up R via the command line and run this section from there
+
+12. calculate POC flux at MLDmax. This is more computationally intensive and each model should take 2-3 hours to run. I opened up R via a tmux session in the command line and ran this section of code there. I had a tmux session for each model, which means you can calculate every model at once and saves a lot of time.
+
+- get_time.R
+- calc_expc_avg.R: for CESM, be sure to convert from cm to m. Only this model archives data with depths in cm. See the note in this function
+- calc_expc_st_UKESM.R: custom calculation for UKESM short-term POC flux at MLDmax because you have to take the yearly average first (expc data is only available in months from this model)
+- calc_expc_lt_UKESM.R: same as calc_expc_st_UKESM.R but for long-term
+
+13. plot POC flux at the MLDmax
+
+- plot_expc_avg.R: be sure to uncomment the scale_y_continuous line when running code for MPI so it doesn't plot upside down.
+
+14. plot 6 panel figure of POC flux change at MLDmax for each model. readPNG sometimes doesn't work in the notebook. If so, try running code in a script, or via R in the command line.
+
+15. calculate and plot POC flux differences between 100m and MLDmax depth horizons
+
+- calc_depth_horizon_diff.R
+- plot_depth_horizon_diff.R: uncomment scale_y_continuous for MPI so it doesn't plot upside down, check the metadata to get the right lat and lon names
+
+16. code from my senior thesis: calculates depth profiles at 6 different individual grid cells in CESM. Create short-term and long-term POC flux averages down the entire water column matrices first.
+
+- depth_profiles.R: extracts POC flux and depth values from one grid cell, plots them, also saves table of particle compensation depth, POC flux values and % flux values, etc. (Table 2 in senior thesis)
+
+17. combines depth profile csv files into one to eventually create thesis Table 2
+
+18. downloads cell area data (if I didn't already have it), and calculates globally integrated POC flux at 100m (Pg C/yr)
+
+- global_POC_flux.R
+
+19. calculates an Atlantic and Pacific transect for CESM (code from senior thesis). See Figure 2 and Figures 6-9
+
+- calc_expc_transect.R
+
+20. plots Atlantic and Pacific transects (Fig. 6-9 in thesis)
+
+- plot_expc_transect.R
+
+21. calculate POC flux at any depth. I did 200m, 500m, and 1000m. This function works by interpolating depth resolved data at the specified depth, similar to calc_expc_avg.R
+
+- calc_expc_meters.R: CESM archives data in cm, so go into function and convert to meters at labeled parts
+- calc_meters_UKESM.R: custom calculation for UKESM since it archives data monthly, not yearly
+
+22. plot POC flux at 200m, 500m, 1000m
+
+- plot_expc_meters.R: uncomment scale_y_continuous line for MPI so it doesn't plot upside downw
+
+23. plots 6 panel figures at 200m, 500m, 1000m. If you're having readPNG issues, run this code in a script or via R in the command line
+
+24. calculating globally integrated POC flux at 100m every year (1850-2100) to make time series figure. Download historical data first. Depth resolved POC flux historical data doesn't seem to be available for EC-Earth
+
+- calc_global_time_series.R: includes both functions to calculate at 100m and at MLDmax
+- get_time.R: start.his and start.fut at janurary of the earliest year for epc100, end.his and end.fut at janurary of the last year where there are 12 time steps available
+
+25. calculate globally integrated POC flux at MLDmax time series (1850-2100)
+
+- calc_global_time_series.R

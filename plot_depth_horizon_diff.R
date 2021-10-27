@@ -6,6 +6,7 @@
 #' @description plots on the model's native grid
 #' @note check the file metadata for each model to find the lat and lon standard names
 #' @note model.name must match the name used in the Rds files
+#' @note uncomment scale_y_continuous when plotting MPI
 
 
 plot_depth_horizon_diff <- function(wd, nc_file, model.name, lat.name, lon.name) {

@@ -20,7 +20,8 @@
               "sna","RColorBrewer","grDevices","colorRamps","colorspace","RNetCDF","parallel",
               "doSNOW","emdbook","plotly","ggiraphExtra","viridis", "cowplot", "mapdata", "XML", 
               "ncdf4", "rasterVis", "fields","sf","rgdal","ncdf4","rgdal", "broom", "gridExtra", "lubridate", 
-              "chron", "png", "grid", "lemon", "epwshiftr", "ggpubr", "R.oo","R.methodsS3", "R.utils")
+              "chron", "png", "grid", "lemon", "epwshiftr", "ggpubr", "R.oo","R.methodsS3", "R.utils", "plotly",
+              "cmocean", "magicfor", "rlist", "rioja","qpcR")
 
 
 # Install CRAN packages (if not already installed)
@@ -32,13 +33,13 @@ lapply(.packages, require, character.only=TRUE)
 
 # if these packages are not present uncomment and run this code
 # then uncomment before running chunk  
- #   install.packages('spDataLarge',
- # repos='https://nowosad.github.io/drat/', type='source')
- #   devtools::install_github("ropenscilabs/rnaturalearth")
- #  devtools::install_github("ropenscilabs/rnaturalearthdata")
- #   install.packages("rnaturalearthhires",
- #                  repos = "http://packages.ropensci.org",
- #                  type = "source")
+#   install.packages('spDataLarge',
+# repos='https://nowosad.github.io/drat/', type='source')
+#   devtools::install_github("ropenscilabs/rnaturalearth")
+#  devtools::install_github("ropenscilabs/rnaturalearthdata")
+#   install.packages("rnaturalearthhires",
+#                  repos = "http://packages.ropensci.org",
+#                  type = "source")
 
 
 lapply(.packages, require, character.only=TRUE)
