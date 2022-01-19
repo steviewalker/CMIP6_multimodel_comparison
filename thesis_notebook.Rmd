@@ -29,8 +29,8 @@ idx <- init_cmip6_index(
   # only consider ScenarioMIP activity
   activity = "CMIP",
   
-  # specify variables POC, NPP, and MLD
-  variable = c("epc100"),
+  # specify variables
+  variable = c("expc"),
   
   # specify report frequency
   frequency = c("mon"),
@@ -39,10 +39,10 @@ idx <- init_cmip6_index(
   experiment = c("historical"),
   
   # specify GCM names
-  source = c("EC-Earth3-CC","MPI-ESM1-2-HR"),
+  source = c("UKESM1-0-LL"),
   
   # specify variant,
-  variant = c("r1i1p1f1"),
+  variant = c("r1i1p1f2"),
   
   # save to data directory
   save = FALSE
@@ -51,13 +51,15 @@ idx <- init_cmip6_index(
 #subset index data frame to only keep the wget url
 df <- idx[,21]
 #saving CMIP6 data list (rename this every time to the save name of your choice)
-write_csv(df,"~/senior_thesis/download_indexes/historical.csv")
+write_csv(df,"~/senior_thesis/download_indexes/historical_UKESM_expc.csv")
 
 ```
 
 3. Download data files
 ```{r}
 
+setwd('~/senior_thesis/')
+source('libraries.R')
 source('get_nc_thredds.R')
 
 #creating save path
@@ -109,6 +111,22 @@ get_nc_thredds(cmip6.index, save.path)
 cmip6.index <- read_csv("~/senior_thesis/download_indexes/GFDL_historical.csv")
 get_nc_thredds(cmip6.index, save.path)
 
+#download UKESM historical data
+cmip6.index <- read_csv("~/senior_thesis/download_indexes/historical_UKESM.csv")
+get_nc_thredds(cmip6.index, save.path)
+
+#download MPI historical mlotst
+cmip6.index <- read_csv("~/senior_thesis/download_indexes/historical_MPI.csv")
+get_nc_thredds(cmip6.index, save.path)
+
+#download EC-Earth historical mlotst and expc
+cmip6.index <- read_csv("~/senior_thesis/download_indexes/historical_EC-Earth.csv")
+get_nc_thredds(cmip6.index, save.path)
+
+#
+cmip6.index <- read_csv("~/senior_thesis/download_indexes/historical_UKESM_expc.csv")
+get_nc_thredds(cmip6.index, save.path)
+
 ```
 
 4. Combine multipart files into a single nc file
@@ -128,7 +146,7 @@ model.scenarios <- list.files("~/senior_thesis/CESM_data/", pattern = "*_gn_*.*n
   str_split(.,"_gn") %>% 
   unlist %>% 
   #switch between variables and model reps here. You can do this manually here, then rerun.
-  grep("expc_Oyr_CESM2_historical_r10i1p1f1",., value = TRUE) %>% 
+  grep("mlotst_Omon_CESM2_historical_r10i1p1f1",., value = TRUE) %>% 
   unique()
 
 data.path <- "~/senior_thesis/CESM_data/"
@@ -145,7 +163,7 @@ model.scenarios <- list.files("~/senior_thesis/GFDL_data/", pattern = "*_gr_*.*n
   str_split(.,"_gr") %>% 
   unlist %>% 
   #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
-  grep("expc_Oyr_GFDL-ESM4_historical_r1i1p1f1",., value = TRUE) %>% 
+  grep("mlotst_Omon_GFDL-ESM4_historical_r1i1p1f1",., value = TRUE) %>% 
   unique()
 
 data.path <- "~/senior_thesis/GFDL_data/"
@@ -164,7 +182,7 @@ model.scenarios <- list.files("~/senior_thesis/UKESM_data/", pattern = "*_gn_*.*
   str_split(.,"_gn") %>% 
   unlist %>% 
   #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
-  grep("expc_Omon_UKESM1-0-LL_historical_r1i1p1f2",., value = TRUE) %>% 
+  grep("mlotst_Omon_UKESM1-0-LL_historical_r1i1p1f2",., value = TRUE) %>% 
   unique()
 
 data.path <- "~/senior_thesis/UKESM_data/"
@@ -183,7 +201,7 @@ model.scenarios <- list.files("~/senior_thesis/EC_Earth_data/", pattern = "*_gn_
   str_split(.,"_gn") %>% 
   unlist %>% 
   #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
-  grep("epc100_Omon_EC-Earth3-CC_historical_r1i1p1f1",., value = TRUE) %>% 
+  grep("mlotst_Omon_EC-Earth3-CC_historical_r1i1p1f1",., value = TRUE) %>% 
   unique()
 
 data.path <- "~/senior_thesis/EC_Earth_data/"
@@ -202,7 +220,7 @@ model.scenarios <- list.files("~/senior_thesis/MPI_data/", pattern = "*_gn_*.*nc
   str_split(.,"_gn") %>% 
   unlist %>% 
   #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
-  grep("epc100_Omon_MPI-ESM1-2-HR_historical_r1i1p1f1",., value = TRUE) %>% 
+  grep("mlotst_Omon_MPI-ESM1-2-HR_ssp585_r1i1p1f1",., value = TRUE) %>% 
   unique()
 
 data.path <- "~/senior_thesis/MPI_data/"
@@ -592,7 +610,7 @@ ggsave(grid.combine, filename = "faceted_MLDmax.png", device = "png", path = "~/
 ```{r}
 setwd("~/senior_thesis/")
 source('libraries.R')
-source('calc_expc_avg_new.R')
+source('calc_expc_avg.R')
 source('get_time.R')
 
 #every model but UKESM was averaged from 2015-2035 and 2079-2099, UKESM was 2015-2035 and 2077-2097
@@ -1445,7 +1463,7 @@ ggsave(grid.combine, filename = "faceted_expc_1000.png", device = "png", path = 
 setwd('~/senior_thesis/')
 source('libraries.R')
 source('get_time.R')
-source('calc_global_time_series.R')
+source('calc_time_series_epc100.R')
 
 ## CESM ---------------
 
@@ -1508,7 +1526,7 @@ time_series_100(wd = "~/senior_thesis/combined_EC-Earth_files/",
 
 #GFDL historical
 get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
-         file.name = 'epc100_Omon_GFDL-ESM4_historical_r1i1p1f1_gn_185001-201412.nc')
+         file.name = 'epc100_Omon_GFDL-ESM4_historical_r1i1p1f1_gr_185001-201412.nc')
 
 #GFDL future
 get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
@@ -1517,7 +1535,7 @@ get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
 #GFDL time series
 time_series_100(wd = "~/senior_thesis/combined_GFDL_files/",
                 model.name = "GFDL",
-                his.name = 'epc100_Omon_GFDL-ESM4_historical_r1i1p1f1_gn_185001-201412.nc',
+                his.name = 'epc100_Omon_GFDL-ESM4_historical_r1i1p1f1_gr_185001-201412.nc',
                 fut.name = 'epc100_Omon_GFDL-ESM4_ssp585_r1i1p1f1_gr_201501-210012.nc',
                 area.name = 'areacello_Ofx_GFDL-ESM4_historical_r1i1p1f1_gr.nc',
                 start.his = 1, end.his = 1958,
@@ -1571,7 +1589,7 @@ setwd('~/senior_thesis/')
 source('libraries.R')
 source('get_time.R')
 source('calc_time_series_MLDmax.R')
-source('calc_global_time_series.R')
+source('calc_time_series_expc.R')
 
 ## CESM ----------
 
@@ -1581,27 +1599,203 @@ source('calc_global_time_series.R')
 #end.fut = 1014
 #model.name = "CESM"
 
-#historical CESM
+#historical expc CESM
 get_time(data.path = "~/senior_thesis/combined_CESM_files/",
          file.name = 'expc_Oyr_CESM2_historical_r10i1p1f1_gn_1850-2014.nc')
 
-#future CESM
+#future expc CESM
 get_time(data.path = "~/senior_thesis/combined_CESM_files/",
          file.name = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc')
 
-#creating yearly MLDmax array
+#historical MLD CESM (1849-2013)
+get_time(data.path = "~/senior_thesis/combined_CESM_files/",
+         file.name = 'mlotst_Omon_CESM2_historical_r10i1p1f1_gn_185001-201412.nc')
+
+#future MLD CESM (2014-2098)
+get_time(data.path = "~/senior_thesis/combined_CESM_files/",
+         file.name = 'mlotst_Omon_CESM2_ssp585_r10i1p1f1_gn_201501-210012.nc')
+
+#creating yearly MLDmax arrays
 time_series_MLDmax(wd = "~/senior_thesis/combined_CESM_files",
                    nc.file = 'mlotst_Omon_CESM2_ssp585_r10i1p1f1_gn_201501-210012.nc',
-                   start.fut = 6, end.fut = 1014,
+                   start.fut = 5, end.fut = 1014,
+                   start.his = 4, end.his = 1961,
                    model.name = "CESM")
+
+#calculating globally integrated POC flux at MLDmax from 1850-2100
+time_series_expc(wd = "~/senior_thesis/combined_CESM_files",
+                 model.name = "CESM",
+                 fut.name = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+                 his.name = 'expc_Oyr_CESM2_historical_r10i1p1f1_gn_1850-2014.nc',
+                 area.name = 'areacello_Ofx_CESM2_ssp585_r10i1p1f1_gn.nc',
+                 lon.length = 1:320,
+                 lat.length = 1:384)
 
 ## CMCC --------------
 
-#creating yearly MLDmax array
+# historical MLD (1850-2013)
+get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
+         file.name = 'mlotst_Omon_CMCC-ESM2_historical_r1i1p1f1_gn_185001-201412.nc')
+
+# future MLD (2015-2099)
+get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
+         file.name = 'mlotst_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc')
+
+# historical expc
+get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
+         file.name = 'expc_Oyr_CMCC-ESM2_historical_r1i1p1f1_gn_1850-2014.nc')
+
+#future expc
+get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
+         file.name = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc')
+
+#creating yearly MLDmax arrays (1850-2099)
 time_series_MLDmax(wd = "~/senior_thesis/combined_CMCC_files",
-                   nc.file = 'mlotst_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc',
-                   start.fut = 6, end.fut = 1014,
-                   model.name = "CESM")
+                   mlotst.his = 'mlotst_Omon_CMCC-ESM2_historical_r1i1p1f1_gn_185001-201412.nc',
+                   mlotst.fut = 'mlotst_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc',
+                   model.name = "CMCC",
+                   start.his = 1, end.his = 1958,
+                   start.fut = 2, end.fut = 1011)
+
+#calculating globally integrated POC flux at MLDmax from 1850-2100
+time_series_expc(wd = "~/senior_thesis/combined_CMCC_files",
+                 model.name = "CMCC",
+                 fut.name = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 his.name = 'expc_Oyr_CMCC-ESM2_historical_r1i1p1f1_gn_1850-2014.nc',
+                 area.name = 'areacello_Ofx_CMCC-ESM2_historical_r1i1p1f1_gn.nc',
+                 lon.length = 1:362,
+                 lat.length = 1:292)
+
+
+## GFDL ------------------
+
+# historical MLD (1850-2013)
+get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
+         file.name = 'mlotst_Omon_GFDL-ESM4_historical_r1i1p1f1_gr_185001-201412.nc')
+
+# future MLD (2015 - 2099)
+get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
+         file.name = 'mlotst_Omon_GFDL-ESM4_ssp585_r1i1p1f1_gr_201501-210012.nc')
+
+# historical expc
+get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
+         file.name = 'expc_Oyr_GFDL-ESM4_historical_r1i1p1f1_gr_1850-2014.nc')
+
+#future expc
+get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
+         file.name = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc')
+
+#creating yearly MLDmax arrays (1850-2099)
+time_series_MLDmax(wd = "~/senior_thesis/combined_GFDL_files",
+                   mlotst.his = 'mlotst_Omon_GFDL-ESM4_historical_r1i1p1f1_gr_185001-201412.nc',
+                   mlotst.fut = 'mlotst_Omon_GFDL-ESM4_ssp585_r1i1p1f1_gr_201501-210012.nc',
+                   model.name = "GFDL",
+                   start.his = 1, end.his = 1958,
+                   start.fut = 2, end.fut = 1011)
+
+#calculating globally integrated POC flux at MLDmax from 1850-2100
+time_series_expc(wd = "~/senior_thesis/combined_GFDL_files",
+                 model.name = "GFDL",
+                 fut.name = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+                 his.name = 'expc_Oyr_GFDL-ESM4_historical_r1i1p1f1_gr_1850-2014.nc',
+                 area.name = 'areacello_Ofx_GFDL-ESM4_historical_r1i1p1f1_gr.nc',
+                 lon.length = 1:360,
+                 lat.length = 1:180)
+
+
+
+##UKESM --------------
+
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'mlotst_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-201412.nc')
+
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'mlotst_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc')
+
+#creating yearly MLDmax array
+time_series_MLDmax(wd = "~/senior_thesis/combined_UKESM_files",
+                   mlotst.his = 'mlotst_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-201412.nc',
+                   mlotst.fut = 'mlotst_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc',
+                   model.name = "UKESM",
+                   start.his = 1, end.his = 1961,
+                   start.fut = 5, end.fut = 1016)
+
+time_series_expc(wd = "~/senior_thesis/combined_UKESM_files",
+                 model.name = "MPI",
+                 fut.name = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 his.name = 'expc_Oyr_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1850-2014.nc',
+                 area.name = 'areacello_Ofx_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn.nc',
+                 lon.length = 1:802,
+                 lat.length = 1:404)
+
+
+## MPI --------------------
+#historical expc MPI
+get_time(data.path = "~/senior_thesis/combined_MPI_files/",
+         file.name = 'expc_Oyr_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1850-2014.nc')
+
+#future expc MPI
+get_time(data.path = "~/senior_thesis/combined_MPI_files/",
+         file.name = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc')
+
+#historical MLD MPI (1850-2014)
+get_time(data.path = "~/senior_thesis/combined_MPI_files/",
+         file.name = 'mlotst_Omon_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_185001-201412.nc')
+
+#future MLD MPI (2015-2100)
+get_time(data.path = "~/senior_thesis/combined_MPI_files/",
+         file.name = 'mlotst_Omon_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_201501-210012.nc')
+
+#create yearly MLDmax arrays
+time_series_MLDmax(wd = "~/senior_thesis/combined_MPI_files",
+                   mlotst.his = 'mlotst_Omon_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_185001-201412.nc',
+                   mlotst.fut = 'mlotst_Omon_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_201501-210012.nc',
+                   model.name = "MPI",
+                   start.his = 1, end.his = 1969,
+                   start.fut = 1, end.fut = 1021)
+
+#calculating globally integrated POC flux at MLDmax from 1850-2100
+time_series_expc(wd = "~/senior_thesis/combined_MPI_files",
+                 model.name = "MPI",
+                 fut.name = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 his.name = 'expc_Oyr_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1850-2014.nc',
+                 area.name = 'areacello_Ofx_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn.nc',
+                 lon.length = 1:802,
+                 lat.length = 1:404)
+
+## EC-Earth --------------
+#historical expc MPI
+get_time(data.path = "~/senior_thesis/combined_EC-Earth_files/",
+         file.name = 'expc_Oyr_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1850-2014.nc')
+
+#future expc MPI
+get_time(data.path = "~/senior_thesis/combined_EC-Earth_files/",
+         file.name = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc')
+
+#historical MLD EC-Earth (1850-2014)
+test <- get_time(data.path = "~/senior_thesis/combined_EC-Earth_files/",
+         file.name = 'mlotst_Omon_EC-Earth3-CC_historical_r1i1p1f1_gn_185001-201412.nc')
+
+#future MLD EC-Earth (2015-2100)
+get_time(data.path = "~/senior_thesis/combined_EC-Earth_files/",
+         file.name = 'mlotst_Omon_EC-Earth3-CC_ssp585_r1i1p1f1_gn_201501-210012.nc')
+
+#create yearly MLDmax arrays
+time_series_MLDmax(wd = "~/senior_thesis/combined_EC-Earth_files",
+                   mlotst.his = 'mlotst_Omon_EC-Earth3-CC_historical_r1i1p1f1_gn_185001-201412.nc',
+                   mlotst.fut = 'mlotst_Omon_EC-Earth3-CC_ssp585_r1i1p1f1_gn_201501-210012.nc',
+                   model.name = "EC-Earth",
+                   start.his = 1, end.his = 1969,
+                   start.fut = 1, end.fut = 1021)
+
+#calculating globally integrated POC flux at MLDmax from 1850-2100
+time_series_expc(wd = "~/senior_thesis/combined_EC-Earth_files",
+                 model.name = "EC-Earth",
+                 fut.name = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 his.name = 'expc_Oyr_EC-Earth3-CC_historical_r1i1p1f1_gn_1850-2014.nc',
+                 area.name = 'areacello_Ofx_EC-Earth3-CC_ssp585_r1i1p1f1_gn.nc',
+                 lon.length = 1:362,
+                 lat.length = 1:292)
 
 
 

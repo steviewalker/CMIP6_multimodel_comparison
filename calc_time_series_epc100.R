@@ -88,6 +88,6 @@ time_series_100 <- function(wd, model.name, his.name, fut.name, area.name, start
   df = data.frame(time.series)
   #change column names for merging csv files later
   colnames(df) = c('Year',model.name)
-  write.csv(df,paste0("~/senior_thesis/plotting_dataframes/time_series",model.name,"_time_series.csv"))
+  write.csv(df,paste0("~/senior_thesis/plotting_dataframes/time_series/",model.name,"_time_series.csv"))
   
 }
