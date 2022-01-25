@@ -1,5 +1,11 @@
+#' @title Plotting Globally Integrated Time Series Data
+#' @author Stevie Walker
+#' @date 1/25/22
+#' @description plots 4 figures of globally integrated time series at 100m, MLDmax, normalized 100m, and normalized MLDmax
+#' @description also saves tidied and combined time series data frames
 
-## Time series at 100m ---------------
+
+## 1. TIME SERIES AT 100m ---------------
 
 setwd("~/senior_thesis/plotting_dataframes/time_series/")
 df.sep <- list.files("~/senior_thesis/plotting_dataframes/time_series/", pattern = "*_time_series.csv$")
@@ -18,9 +24,17 @@ for(i in df.sep) {
 }
 
 #join by year (2015 has a lot of repeats, but that doesn't effect later plotting)
-df <- time.series %>% reduce(inner_join, by = "Year")
-#add column for model key
+df <- time.series %>% 
+  reduce(left_join, by = "Year")
+#delete random extra 2015 rows
+df <- df[-c(166:196), ]
+
+#save POC flux at 100m time-series data frame for all models
+write_csv(df, file = "~/senior_thesis/plotting_dataframes/time_series/time_series_epc100_all.csv")
+
+#add column for model key (reformatting data specific to the below plot)
 df2 <- melt(df,  id.vars = 'Year', value.name = 'POC_flux_100', variable.name = "Model")
+
 
 #plot time series at 100m
 figure <- ggplot(data = df2, aes(x = Year, y = POC_flux_100, color = Model)) +
@@ -36,7 +50,7 @@ figure <- ggplot(data = df2, aes(x = Year, y = POC_flux_100, color = Model)) +
 ggsave(filename = "time_series_100m.png", plot = figure, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
 
 
-## Time-series at MLDmax -------------------
+## 2. TIME SERIES AT MLDMAX -------------------
 
 
 setwd("~/senior_thesis/plotting_dataframes/time_series/")
@@ -60,6 +74,9 @@ df.expc <- time.series2 %>% reduce(left_join, by = "Year")
 #add column for model key
 df2.expc <- melt(df.expc,  id.vars = 'Year', value.name = 'POC_flux_expc', variable.name = "Model")
 
+#save POC flux at MLDmax time-series data frame for all models
+write_csv(df.expc, file = "~/senior_thesis/plotting_dataframes/time_series/time_series_expc_all.csv")
+
 #plot time series at MLDmax
 figure2 <- ggplot(data = df2.expc, aes(x = Year, y = POC_flux_expc, color = Model)) +
   geom_line() +
@@ -73,24 +90,106 @@ figure2 <- ggplot(data = df2.expc, aes(x = Year, y = POC_flux_expc, color = Mode
 #save figure
 ggsave(filename = "time_series_expc.png", plot = figure2, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
 
-# COME BACK TO THIS
 
-## 100m and MLDmax in same panel -----------------
-
-colnames(df) <- 
+## 3. NORMALIZED POC FLUX AT 100M RELATIVE TO 1850-1900 MEAN ----------------
 
 
+#read in df created for first figure
+epc100.all <- read_csv("~/senior_thesis/plotting_dataframes/time_series/time_series_epc100_all.csv")
 
-df.both <- left_join(df2,df2.expc, by = c("Model","Year"))
+#calculate average for each model from 1850-1900
+mean1850_1900 <- dplyr::filter(epc100.all, Year <= 1900) %>% 
+  summarise_if(is.numeric, mean)
 
-figure3 <- ggplot(data = df.both) +
-  geom_line(aes(x = Year, y = Model, color = Model)) +
+mean1850_1900 <- subset(mean1850_1900, select = -c(1))
+
+#need to fix year column
+normalized.epc100 <- 
+  subset(epc100.all, select = -c(1))
+
+#calculate normalized POC flux
+normalized.epc100 <- mapply('/', normalized.epc100, mean1850_1900)*100
+
+normalized.epc100 <- normalized.epc100 %>% 
+  cbind(Year = c(1850:2100)) %>% 
+  as_tibble() %>% 
+  relocate(Year, .before = CESM) 
+
+#save df
+write_csv(normalized.epc100, "~/senior_thesis/plotting_dataframes/time_series/normalized_time_series_epc100.csv")
+
+#add column for model key (reformatting data specific to the below plot)
+plot.normalized.epc100 <- melt(normalized.epc100,  id.vars = 'Year', value.name = 'POC_flux_100', variable.name = "Model")
+
+#plot time series at 100m
+figure3 <- ggplot(data = plot.normalized.epc100, aes(x = Year, y = POC_flux_100, color = Model)) +
+  geom_line() +
   geom_smooth(size = 0.5, se = FALSE) +
   theme_bw() +
-  labs(title = "Time Series Change in Global POC Flux at MLDmax (1850-2100)") +
+  labs(title = "Percent Change in Global POC Flux at 100m (1850-2100)",
+       subtitle = "Relative to 1850-1900 average") +
   xlab(NULL) +
-  ylab("POC Flux (Pg C/yr)") +
-  scale_y_continuous(n.breaks = 6)
+  ylab("Percent Change") +
+  scale_y_continuous(limits = c(76, 107), n.breaks = 6)
 
-figure3
+#save figure
+ggsave(filename = "normalized_time_series_100m.png", plot = figure3, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
+
+
+## 4. NORMALIZED POC FLUX AT MLD MAX RELATIVE TO 1850-1900 AVG --------------
+
+
+#read in df created for first figure
+expc.all <- read_csv("~/senior_thesis/plotting_dataframes/time_series/time_series_expc_all.csv")
+
+#calculate average for each model from 1850-1900
+mean1850_1900 <- dplyr::filter(expc.all, between(Year, 1850, 1900)) %>% 
+  summarise_if(is.numeric, mean)
+
+mean1850_1900 <- subset(mean1850_1900, select = -c(1))
+
+#need to fix year column
+normalized.expc <- 
+  subset(expc.all, select = -c(1))
+
+#calculate normalized POC flux
+normalized.expc <- mapply('/', normalized.expc, mean1850_1900)*100
+
+normalized.expc <- normalized.expc %>% 
+  cbind(Year = c(1849:2100)) %>% 
+  as_tibble() %>% 
+  relocate(Year, .before = CESM) 
+
+#save df
+write_csv(normalized.expc, "~/senior_thesis/plotting_dataframes/time_series/normalized_time_series_expc.csv")
+
+
+#add column for model key (reformatting data specific to the below plot)
+plot.normalized.expc <- melt(normalized.expc,  id.vars = 'Year', value.name = 'POC_flux_MLDmax', variable.name = "Model")
+
+#plot time series at 100m
+figure4 <- ggplot(data = plot.normalized.expc, aes(x = Year, y = POC_flux_MLDmax, color = Model)) +
+  geom_line() +
+  geom_smooth(size = 0.5, se = FALSE) +
+  theme_bw() +
+  labs(title = "Percent Change in Global POC Flux at MLDmax (1850-2100)",
+       subtitle = "Relative to 1850-1900 average") +
+  xlab(NULL) +
+  ylab("Percent Change") +
+  scale_y_continuous(limits = c(76, 107), n.breaks = 6)
+
+
+#save figure
+ggsave(filename = "normalized_time_series_MLDmax.png", plot = figure4, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
+
+
+## FACETED NORMALIZED TIME SERIES FIGURE -----------
+
+combined <- grid.arrange(figure3, figure4, ncol = 1)
+
+ggsave(filename = "normalized_time_series_faceted.png", plot = combined, path = "~/senior_thesis/figures/", width = 20, height = 24, units = "cm", dpi = 400)
+
+combined2 <- grid.arrange(figure, figure2, ncol = 1)
+
+ggsave(filename = "time_series_faceted.png", plot = combined2, path = "~/senior_thesis/figures/", width = 20, height = 24, units = "cm", dpi = 400)
 

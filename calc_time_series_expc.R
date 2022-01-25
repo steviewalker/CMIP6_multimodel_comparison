@@ -2,7 +2,7 @@
 #' @author Stevie Walker
 #' @date 11/1/21
 #' @inputs expc nc file, areacello nc file, mlotst nc file, MLDmax time series arrays (historical and future for all inputs)
-#' @output 
+#' @output csv file of year and global POC flux for each year
 
 #fut.name = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc'
 #his.name = 'expc_Oyr_CESM2_historical_r10i1p1f1_gn_1850-2014.nc'

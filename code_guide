@@ -23,6 +23,8 @@ The project notebook is numbered by section, and here is my guide for running th
 4. combine the nc files, which after being downloaded are typically broken up into smaller year sements. Be sure to check whether the files being combined are on the native grid (gn) or the regular grid (gr), and change the code accordingly. Sometimes the files are too large to be combined (like with UKESM expc files). If so, adjust your analysis accordingly.
 
 - combine_ncfiles.R: double check that gn and gr are correct for the data you're downloading
+- be sure to use the appropriate "gn" or "gr" code in both the notebook and the function
+- move the downloaded files from the cmip6_data folder to the corresponding model data folder (ex. GFDL_data) or else the combine_ncfiles function won't work
 
 5. pulls out metadata for files in every folder
 
@@ -97,11 +99,20 @@ The project notebook is numbered by section, and here is my guide for running th
 
 23. plots 6 panel figures at 200m, 500m, 1000m. If you're having readPNG issues, run this code in a script or via R in the command line
 
-24. calculating globally integrated POC flux at 100m every year (1850-2100) to make time series figure. Download historical data first. Depth resolved POC flux historical data doesn't seem to be available for EC-Earth
+24. calculating globally integrated POC flux at 100m every year (1850-2100) to make time series figure. Download and combine historical data first.
 
-- calc_global_time_series.R: includes both functions to calculate at 100m and at MLDmax
+- calc_time_series_epc100.R: includes function to calculate at 100ms
 - get_time.R: start.his and start.fut at janurary of the earliest year for epc100, end.his and end.fut at janurary of the last year where there are 12 time steps available
 
-25. calculate globally integrated POC flux at MLDmax time series (1850-2100)
+25. calculate time series of globally integrated POC flux at MLDmax (1850-2100). This is the most computationally expensive code at this point in the data analysis (ex. calculating expc time series for MPI took two days). I had the VM sized to Standard F8s v2 for this. 
 
-- calc_global_time_series.R
+Steps:
+
+1) get_time.R: start.his and start.fut at janurary of the earliest year for MLDmax, end.his and end.fut at janurary of the last year where there are 12 time steps available
+2) calc_time_series_MLDmax.R: calculates globally integrated MLDmax for each year 1850-2100, need these 2 matrices for the next function
+3) calc_time_series_expc.R: calculates globally integrated POC flux at MLDmax time series. NOTES: make sure 100m division is there for CESM. In most cases, the length in years of the MLDmax time series must match length of the final vector output. BUT, for MPI, the expc historical data gets cut off at 2000 for some reason, so the length of the vector output is 150, not 164. 
+
+26. Plotting time series figures. 
+
+- plot_time_series.R: tidies up time series csv files from step 25 for plotting. Produces 4 figures, two of POC flux time series output for both depth horizons, and two for normalized time series output for both depth horizons
+- plot_faceted_time_series.R: function to produce depth horizon comparison figures. 
