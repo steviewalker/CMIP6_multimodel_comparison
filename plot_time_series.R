@@ -69,8 +69,13 @@ for(i in df.expc) {
   time.series2[[i]] <- df.expc
 }
 
+#add UKESM to list separately since it doesn't have the "...1" column
+time.series2$UKESM_time_series.csv = as.tibble(read_csv("UKESM_time_series_expc.csv"))
+
 #join by year (2015 has a lot of repeats, but that doesn't effect later plotting)
-df.expc <- time.series2 %>% reduce(left_join, by = "Year")
+df.expc <- time.series2 %>% 
+  reduce(left_join, by = "Year")
+
 #add column for model key
 df2.expc <- melt(df.expc,  id.vars = 'Year', value.name = 'POC_flux_expc', variable.name = "Model")
 
@@ -130,7 +135,7 @@ figure3 <- ggplot(data = plot.normalized.epc100, aes(x = Year, y = POC_flux_100,
        subtitle = "Relative to 1850-1900 average") +
   xlab(NULL) +
   ylab("Percent Change") +
-  scale_y_continuous(limits = c(76, 107), n.breaks = 6)
+  scale_y_continuous(limits = c(60, 112), n.breaks = 6)
 
 #save figure
 ggsave(filename = "normalized_time_series_100m.png", plot = figure3, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
@@ -144,7 +149,7 @@ expc.all <- read_csv("~/senior_thesis/plotting_dataframes/time_series/time_serie
 
 #calculate average for each model from 1850-1900
 mean1850_1900 <- dplyr::filter(expc.all, between(Year, 1850, 1900)) %>% 
-  summarise_if(is.numeric, mean)
+  summarise_if(is.numeric, mean, na.rm = TRUE)
 
 mean1850_1900 <- subset(mean1850_1900, select = -c(1))
 
@@ -176,20 +181,112 @@ figure4 <- ggplot(data = plot.normalized.expc, aes(x = Year, y = POC_flux_MLDmax
        subtitle = "Relative to 1850-1900 average") +
   xlab(NULL) +
   ylab("Percent Change") +
-  scale_y_continuous(limits = c(76, 107), n.breaks = 6)
+  scale_y_continuous(limits = c(60, 112), n.breaks = 6)
 
 
 #save figure
 ggsave(filename = "normalized_time_series_MLDmax.png", plot = figure4, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
 
 
-## FACETED NORMALIZED TIME SERIES FIGURE -----------
+# 5. TIME SERIES AT 1000M -------------
 
-combined <- grid.arrange(figure3, figure4, ncol = 1)
+setwd("~/senior_thesis/plotting_dataframes/time_series/")
+df.sep <- list.files("~/senior_thesis/plotting_dataframes/time_series/", pattern = "*_time_series_1000.csv$")
 
-ggsave(filename = "normalized_time_series_faceted.png", plot = combined, path = "~/senior_thesis/figures/", width = 20, height = 24, units = "cm", dpi = 400)
+#create empty list for storing for loop output
+time.series <- list()
 
-combined2 <- grid.arrange(figure, figure2, ncol = 1)
+for(i in df.sep) {
+  
+  #read in csv file
+  df <- read_csv(i)
+  #get rid of random ...1 column
+  df <- subset(df, select = -c(...1))
+  #store into list
+  time.series[[i]] <- df
+}
 
-ggsave(filename = "time_series_faceted.png", plot = combined2, path = "~/senior_thesis/figures/", width = 20, height = 24, units = "cm", dpi = 400)
+#join by year
+df <- time.series %>% 
+  reduce(left_join, by = "Year")
+
+#save POC flux at 100m time-series data frame for all models
+write_csv(df, file = "~/senior_thesis/plotting_dataframes/time_series/time_series_1000_all.csv")
+
+#add column for model key (reformatting data specific to the below plot)
+df2 <- melt(df,  id.vars = 'Year', value.name = 'POC_flux_1000', variable.name = "Model")
+
+
+#plot time series at 100m
+figure5 <- ggplot(data = df2, aes(x = Year, y = POC_flux_1000, color = Model)) +
+  geom_line() +
+  geom_smooth(size = 0.5, se = FALSE) +
+  theme_bw() +
+  labs(title = "Time Series Change in Global POC Flux at 1000m (1850-2100)") +
+  xlab(NULL) +
+  ylab("POC Flux (Pg C/yr)") +
+  scale_y_continuous(n.breaks = 6)
+
+#save figure
+ggsave(filename = "time_series_1000m.png", plot = figure, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
+
+
+## 6. NORMALIZED POC FLUX AT 1000M RELATIVE TO 1850-1900 AVG --------------
+
+
+#read in df created for first figure
+ts.1000.all <- read_csv("~/senior_thesis/plotting_dataframes/time_series/time_series_1000_all.csv")
+
+#calculate average for each model from 1850-1900
+mean1850_1900 <- dplyr::filter(ts.1000.all, between(Year, 1850, 1900)) %>% 
+  summarise_if(is.numeric, mean, na.rm = TRUE)
+
+mean1850_1900 <- subset(mean1850_1900, select = -c(1))
+
+#need to fix year column
+normalized.1000 <- 
+  subset(ts.1000.all, select = -c(1))
+
+#calculate normalized POC flux
+normalized.1000 <- mapply('/', normalized.1000, mean1850_1900)*100
+
+normalized.1000 <- normalized.1000 %>% 
+  cbind(Year = c(1849:2100)) %>% 
+  as_tibble() %>% 
+  relocate(Year, .before = CESM) 
+
+#save df
+write_csv(normalized.1000, "~/senior_thesis/plotting_dataframes/time_series/normalized_time_series_1000.csv")
+
+
+#add column for model key (reformatting data specific to the below plot)
+plot.normalized.1000 <- melt(normalized.1000,  id.vars = 'Year', value.name = 'POC_flux_1000', variable.name = "Model")
+
+#plot time series at 1000m
+figure6 <- ggplot(data = plot.normalized.1000, aes(x = Year, y = POC_flux_1000, color = Model)) +
+  geom_line() +
+  geom_smooth(size = 0.5, se = FALSE) +
+  theme_bw() +
+  labs(title = "Percent Change in Global POC Flux at 1000m (1850-2100)",
+       subtitle = "Relative to 1850-1900 average") +
+  xlab(NULL) +
+  ylab("Percent Change") +
+  scale_y_continuous(limits = c(60, 112), n.breaks = 6)
+
+
+#save figure
+ggsave(filename = "normalized_time_series_1000m.png", plot = figure4, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
+
+
+
+## 7. FACETED NORMALIZED TIME SERIES FIGURE -----------
+
+combined <- grid.arrange(figure3, figure4,figure6, ncol = 1)
+
+ggsave(filename = "normalized_time_series_faceted.png", plot = combined, path = "~/senior_thesis/figures/", width = 20, height = 36, units = "cm", dpi = 400)
+
+combined2 <- grid.arrange(figure, figure2, figure5, ncol = 1)
+
+ggsave(filename = "time_series_faceted.png", plot = combined2, path = "~/senior_thesis/figures/", width = 20, height = 36, units = "cm", dpi = 400)
+
 

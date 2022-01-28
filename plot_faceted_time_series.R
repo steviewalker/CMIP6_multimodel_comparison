@@ -6,8 +6,8 @@
 
 faceted_ts <- function(model.name) {
  
-  df <- df.both %>% 
-    dplyr::select(Year, model.name, paste0(model.name,"_expc")) %>%
+  df <- df.all %>% 
+    dplyr::select(Year, model.name, paste0(model.name,"_expc"), paste0(model.name,"_1000")) %>%
     gather(key = "Depth_horizon", value = "POC_flux", -Year)
 
 figure <- ggplot(data = df) +
@@ -18,7 +18,7 @@ figure <- ggplot(data = df) +
   xlab(NULL) +
   ylab("Percent Change in POC Flux") +
   scale_y_continuous(n.breaks = 6) +
-  scale_color_discrete(name = "Depth Horizon", labels = c("100m", "MLDmax"))
+  scale_color_discrete(name = "Depth Horizon", labels = c("100m", "MLDmax", "1000m"))
 
 figure 
 

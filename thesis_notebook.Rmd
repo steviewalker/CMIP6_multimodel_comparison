@@ -1706,11 +1706,19 @@ time_series_expc(wd = "~/senior_thesis/combined_GFDL_files",
 
 ##UKESM --------------
 
+# special code because the files are too big to combine
+
+setwd('~/senior_thesis/')
+source('libraries.R')
+source('get_time.R')
+source('calc_time_series_expc_UKESM.R')
+
 get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
          file.name = 'mlotst_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-201412.nc')
 
 get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
          file.name = 'mlotst_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc')
+
 
 #creating yearly MLDmax array
 time_series_MLDmax(wd = "~/senior_thesis/combined_UKESM_files",
@@ -1720,13 +1728,96 @@ time_series_MLDmax(wd = "~/senior_thesis/combined_UKESM_files",
                    start.his = 1, end.his = 1961,
                    start.fut = 5, end.fut = 1016)
 
-time_series_expc(wd = "~/senior_thesis/combined_UKESM_files",
-                 model.name = "MPI",
-                 fut.name = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
-                 his.name = 'expc_Oyr_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1850-2014.nc',
-                 area.name = 'areacello_Ofx_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn.nc',
-                 lon.length = 1:802,
-                 lat.length = 1:404)
+# 1) expc 1850-1900
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-189912.nc')
+
+UKESM_time_series_his(file = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-189912.nc',
+                      wd = "~/senior_thesis/combined_UKESM_files",
+                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                      start.date = 1,
+                      end.date = 585,
+                      section = "1850_1900")
+
+# 2) expc 1900-1950
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_190001-194912.nc')
+
+UKESM_time_series_his(file = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_190001-194912.nc',
+                      wd = "~/senior_thesis/combined_UKESM_files",
+                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                      start.date = 10,
+                      end.date = 593,
+                      section = "1900_1950")
+
+# 3) expc 1950-2000
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_195001-199912.nc')
+
+UKESM_time_series_his(file = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_195001-199912.nc',
+                      wd = "~/senior_thesis/combined_UKESM_files",
+                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                      start.date = 6,
+                      end.date = 578,
+                      section = "1950_2000")
+
+# 4) expc 2000-2015
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_200001-201412.nc')
+
+UKESM_time_series_his(file = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_200001-201412.nc',
+                      wd = "~/senior_thesis/combined_UKESM_files",
+                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                      start.date = 3,
+                      end.date = 161,
+                      section = "2000_2015")
+
+# 5) expc 2015-2050
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc')
+
+UKESM_time_series_fut(file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc',
+                      wd = "~/senior_thesis/combined_UKESM_files",
+                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                      start.date = 5,
+                      end.date = 407,
+                      section = "2015_2050")
+
+# 6) expc 2050-2100
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_205001-210012.nc')
+
+UKESM_time_series_fut(file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_205001-210012.nc',
+                      wd = "~/senior_thesis/combined_UKESM_files",
+                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                      start.date = 12,
+                      end.date = 596,
+                      section = "2050_2100")
+
+# 7) Combine csv files
+
+#NOTE: Run this in a script, it doesn't work in the notebook for some reason
+setwd("~/senior_thesis/plotting_dataframes/time_series/")
+df.sep <- list.files("~/senior_thesis/plotting_dataframes/time_series/", pattern = "UKESM_time_series_")
+
+#create empty list for storing for loop output
+time.series <- list()
+
+for(i in df.sep) {
+  
+  #read in csv file
+  df <- read_csv(i)
+  #store into list
+  time.series[[i]] <- df
+}
+
+combined <- time.series %>%
+  bind_rows
+
+#delete duplicate year NA rows
+combined <- combined[-c(51, 101), ]
+
+write_csv(combined, "~/senior_thesis/plotting_dataframes/time_series/UKESM_time_series_expc.csv")
 
 
 ## MPI --------------------
@@ -1798,6 +1889,242 @@ time_series_expc(wd = "~/senior_thesis/combined_EC-Earth_files",
                  lat.length = 1:292)
 
 
+
+```
+
+26. Calculate globally integrated time series at 1000m depth horizon
+```{r}
+
+setwd('~/senior_thesis/')
+source('libraries.R')
+source('get_time.R')
+source('calc_time_series_1000.R')
+
+# CESM ---------
+
+#calculating globally integrated POC flux at 1000m from 1850-2100
+# v = 1:85 and 1:164
+time_series_1000(wd = "~/senior_thesis/combined_CESM_files",
+                 model.name = "CESM",
+                 fut.name = 'expc_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+                 his.name = 'expc_Oyr_CESM2_historical_r10i1p1f1_gn_1850-2014.nc',
+                 area.name = 'areacello_Ofx_CESM2_ssp585_r10i1p1f1_gn.nc',
+                 lon.length = 1:320,
+                 lat.length = 1:384)
+
+# CMCC ------------
+
+# v = 1:85 and 1:164
+time_series_1000(wd = "~/senior_thesis/combined_CMCC_files",
+                 model.name = "CMCC",
+                 fut.name = 'expc_Oyr_CMCC-ESM2_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 his.name = 'expc_Oyr_CMCC-ESM2_historical_r1i1p1f1_gn_1850-2014.nc',
+                 area.name = 'areacello_Ofx_CMCC-ESM2_historical_r1i1p1f1_gn.nc',
+                 lon.length = 1:362,
+                 lat.length = 1:292)
+
+
+# EC-Earth -------------
+
+#v = 1:85 and 1:165
+time_series_1000(wd = "~/senior_thesis/combined_EC-Earth_files",
+                 model.name = "EC-Earth",
+                 fut.name = 'expc_Oyr_EC-Earth3-CC_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 his.name = 'expc_Oyr_EC-Earth3-CC_historical_r1i1p1f1_gn_1850-2014.nc',
+                 area.name = 'areacello_Ofx_EC-Earth3-CC_ssp585_r1i1p1f1_gn.nc',
+                 lon.length = 1:362,
+                 lat.length = 1:292)
+
+# GFDL ----------------
+
+#v = 1:85 and 1:164
+time_series_1000(wd = "~/senior_thesis/combined_GFDL_files",
+                 model.name = "GFDL",
+                 fut.name = 'expc_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+                 his.name = 'expc_Oyr_GFDL-ESM4_historical_r1i1p1f1_gr_1850-2014.nc',
+                 area.name = 'areacello_Ofx_GFDL-ESM4_historical_r1i1p1f1_gr.nc',
+                 lon.length = 1:360,
+                 lat.length = 1:180)
+
+#MPI -----------
+
+time_series_1000(wd = "~/senior_thesis/combined_MPI_files",
+                 model.name = "MPI",
+                 fut.name = 'expc_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 his.name = 'expc_Oyr_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1850-2014.nc',
+                 area.name = 'areacello_Ofx_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn.nc',
+                 lon.length = 1:802,
+                 lat.length = 1:404)
+
+#UKESM --------------
+
+# special code because the files are too big to combine
+
+setwd('~/senior_thesis/')
+source('libraries.R')
+source('get_time.R')
+source('calc_time_series_1000_UKESM.R')
+
+
+# 1) expc 1850-1900 +0
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-189912.nc')
+
+UKESM_1000_time_series_his(file = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-189912.nc',
+                      wd = "~/senior_thesis/combined_UKESM_files",
+                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                      start.date = 1,
+                      end.date = 585,
+                      year.seq = seq(from = 1850, to = 1898, by = 1),
+                      section = "1850_1900")
+
+# 2) expc 1900-1950
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_190001-194912.nc')
+
+UKESM_1000_time_series_his(file = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_190001-194912.nc',
+                      wd = "~/senior_thesis/combined_UKESM_files",
+                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                      start.date = 10,
+                      end.date = 582,
+                      year.seq = seq(from = 1900, to = 1947, by = 1),
+                      section = "1900_1950")
+
+# 3) expc 1950-2000 
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_195001-199912.nc')
+
+UKESM_1000_time_series_his(file = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_195001-199912.nc',
+                      wd = "~/senior_thesis/combined_UKESM_files",
+                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                      start.date = 6,
+                      end.date = 578,
+                      year.seq = seq(from = 1948, to = 1996, by = 1),
+                      section = "1950_2000")
+
+# 4) expc 2000-2015 +148
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_200001-201412.nc')
+
+UKESM_1000_time_series_his(file = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_200001-201412.nc',
+                      wd = "~/senior_thesis/combined_UKESM_files",
+                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                      start.date = 3,
+                      end.date = 161,
+                      year.seq = seq(from = 1998, to = 2011, by = 1),
+                      section = "2000_2015")
+
+# 5) expc 2015-2050 +0
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc')
+
+UKESM_1000_time_series_fut(file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc',
+                      wd = "~/senior_thesis/combined_UKESM_files",
+                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                      start.date = 5,
+                      end.date = 407,
+                      year.seq = seq(from = 2013, to = 2046, by = 1),
+                      section = "2015_2050")
+
+# 6) expc 2050-2100 +36
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
+         file.name = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_205001-210012.nc')
+
+UKESM_1000_time_series_fut(file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_205001-210012.nc',
+                      wd = "~/senior_thesis/combined_UKESM_files",
+                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                      start.date = 12,
+                      end.date = 596,
+                      year.seq = seq(from = 2048, to = 2096, by = 1),
+                      section = "2050_2100")
+
+# 7) Combine csv files
+
+#NOTE: Run this in a script, it doesn't work in the notebook for some reason
+setwd("~/senior_thesis/plotting_dataframes/time_series/")
+df.sep <- list.files("~/senior_thesis/plotting_dataframes/time_series/", pattern = "UKESM_time_series_")
+
+#create empty list for storing for loop output
+time.series <- list()
+
+for(i in df.sep) {
+  
+  #read in csv file
+  df <- read_csv(i)
+  #store into list
+  time.series[[i]] <- df
+}
+
+combined <- time.series %>%
+  bind_rows
+
+#delete duplicate year NA rows
+combined <- combined[-c(51, 101), ]
+
+write_csv(combined, "~/senior_thesis/plotting_dataframes/time_series/UKESM_time_series_expc.csv")
+
+
+```
+
+
+27. Plotting time series figures
+```{r}
+
+#plot 100m and MLDmax time series, normalized 100m and MLDmax time series
+source("plot_time_series.R")
+
+#PLOTTING NORMALIZED 100M AND MLDMAX IN SAME PLOT -------
+
+#read in combined expc and epc100 time series
+
+n_epc100_all <- read_csv("~/senior_thesis/plotting_dataframes/time_series/normalized_time_series_epc100.csv")
+n_expc_all <- read_csv("~/senior_thesis/plotting_dataframes/time_series/normalized_time_series_expc.csv")
+n_1000_all <- read_csv("~/senior_thesis/plotting_dataframes/time_series/normalized_time_series_1000.csv")
+
+#rename MLDmax columns
+n_expc_all <- rename(n_expc_all, CESM_expc = CESM)
+n_expc_all <- rename(n_expc_all, CMCC_expc = CMCC)
+n_expc_all <- rename(n_expc_all, 'EC-Earth_expc' = 'EC-Earth')
+n_expc_all <- rename(n_expc_all, GFDL_expc = GFDL)
+n_expc_all <- rename(n_expc_all, MPI_expc = MPI)
+n_expc_all <- rename(n_expc_all, UKESM_expc = UKESM)
+
+#rename 1000m columns
+n_1000_all <- rename(n_1000_all, CESM_1000 = CESM)
+n_1000_all <- rename(n_1000_all, CMCC_1000 = CMCC)
+n_1000_all <- rename(n_1000_all, 'EC-Earth_1000' = 'EC-Earth')
+n_1000_all <- rename(n_1000_all, GFDL_1000 = GFDL)
+
+#combine 100m and MLDmax and 1000m data frames
+df.both <- left_join( n_epc100_all, n_expc_all, by = "Year")
+df.all <- left_join(df.both, n_1000_all, by = "Year")
+
+
+setwd("~/senior_thesis/")
+source('plot_faceted_time_series.R')
+
+faceted_ts("CESM")
+faceted_ts("CMCC")
+faceted_ts("EC-Earth")
+faceted_ts("GFDL")
+faceted_ts("MPI")
+faceted_ts("UKESM")
+
+
+#be sure to run readPNG in a script not the notebook or else it glitches
+setwd("~/senior_thesis/figures/")
+A <- readPNG('CESM_time_series_DH_comparison.png')
+B <- readPNG('CMCC_time_series_DH_comparison.png')
+C <- readPNG('EC-Earth_time_series_DH_comparison.png')
+D <- readPNG('GFDL_time_series_DH_comparison.png')
+E <- readPNG('MPI_time_series_DH_comparison.png')
+f <- readPNG('UKESM_time_series_DH_comparison.png')
+
+grid.combine <- grid.arrange(rasterGrob(A),rasterGrob(B),rasterGrob(C),
+                             rasterGrob(D),rasterGrob(E), rasterGrob(f), ncol=2, nrow=3)
+
+ggsave(grid.combine, filename = "faceted_DH_comparison.png", device = "png", path = "~/senior_thesis/figures/", 
+       dpi = 500, width = 14, height = 12, units = "cm")
 
 ```
 
