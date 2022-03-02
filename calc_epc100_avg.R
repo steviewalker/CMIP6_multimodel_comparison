@@ -49,3 +49,36 @@ saveRDS(var_year2, file = paste(save.name,"_lt.Rds", sep=""), ascii = TRUE)
 saveRDS(var_difference_yr, file = paste(save.name,"_diff.Rds", sep=""), ascii = TRUE)
 
 }
+
+
+#wd = "~/senior_thesis/combined_CESM_files/"
+#nc.file = 'epc100_Omon_CESM2_historical_r10i1p1f1_gn_185001-201412.nc'
+#seq.start = 16
+#model.name = "CESM"
+
+calc_epc100_avg_his <- function(wd, file.name, seq.start, model.name) {
+  
+  ## Calculating historical average (1850-1900) ---------------
+  
+  #open nc file
+  setwd(wd)
+  nc_data <- nc_open(file.name)
+  
+  #get variable at specified time range (12 months x 20 years = 240 months, aka 240 time count)
+  his.epc100 <- ncvar_get(nc_data,"epc100",start= c(1,1,seq.start), count = c(-1,-1, 240))
+  
+  #calculate average POC flux for each grid cell over the years 2014-2034
+  his.average <- apply(his.epc100, c(1,2),mean,na.rm=FALSE)*31536000
+  
+  #read in long-term file for calculating average matrix
+  lt.average = readRDS(paste("~/senior_thesis/plotting_dataframes/",model.name,"_epc100_avg_lt.Rds",sep=""))
+  
+  #for plotting
+  epc100.change = lt.average - his.average
+  
+  #saving matrices
+  saveRDS(his.average, file = paste("~/senior_thesis/plotting_dataframes/",model.name,"_epc100_avg_his.Rds", sep=""), ascii = TRUE)
+  saveRDS(epc100.change, file = paste("~/senior_thesis/plotting_dataframes/",model.name,"_epc100_diff.Rds", sep=""), ascii = TRUE)
+  
+}
+

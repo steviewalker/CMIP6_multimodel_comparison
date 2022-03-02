@@ -9,10 +9,10 @@ global_flux <- function(wd, nc.file, model.name) {
   area <- ncvar_get(nc_data, "areacello")
   
   #read in global POC flux at 100m data
-  epc100_st <- readRDS(paste("~/senior_thesis/plotting_dataframes/",model.name, "_epc100_avg_st.Rds", sep = ""))
-  epc100_lt <- readRDS(paste("~/senior_thesis/plotting_dataframes/",model.name, "_epc100_avg_lt.Rds", sep = ""))
-  expc_st <- readRDS(paste("~/senior_thesis/plotting_dataframes/", model.name,"_mean_expc_st.Rds", sep = ""))
-  expc_lt <- readRDS(paste("~/senior_thesis/plotting_dataframes/", model.name,"_mean_expc_lt.Rds", sep = ""))
+  epc100_st <- readRDS(paste("~/senior_thesis/plotting_dataframes/epc100/",model.name, "_epc100_avg_st.Rds", sep = ""))
+  epc100_lt <- readRDS(paste("~/senior_thesis/plotting_dataframes/epc100/",model.name, "_epc100_avg_lt.Rds", sep = ""))
+  expc_st <- readRDS(paste("~/senior_thesis/plotting_dataframes/expc/", model.name,"_mean_expc_st.Rds", sep = ""))
+  expc_lt <- readRDS(paste("~/senior_thesis/plotting_dataframes/expc/", model.name,"_mean_expc_lt.Rds", sep = ""))
   
   ## Global Flux at 100m ----------
   

@@ -21,8 +21,8 @@ calc_expc_avg <- function(wd, nc.file, model.name, start.st, start.lt, lon.lengt
   nc_data <- nc_open(nc.file)
   
   #read in MLDmax arrays - MLDmax for each year (these objects come from calc_MLD_max.R)
-  MLD_max_st <- readRDS(paste("~/senior_thesis/plotting_dataframes/",model.name,"_array_MLD_max_st.Rds",sep = ""))
-  MLD_max_lt <- readRDS(paste("~/senior_thesis/plotting_dataframes/",model.name,"_array_MLD_max_lt.Rds",sep = ""))
+  MLD_max_st <- readRDS(paste("~/senior_thesis/plotting_dataframes/mlotst/",model.name,"_array_MLD_max_st.Rds",sep = ""))
+  MLD_max_lt <- readRDS(paste("~/senior_thesis/plotting_dataframes/mlotst/",model.name,"_array_MLD_max_lt.Rds",sep = ""))
   
   ## SHORT-TERM FOR LOOP ----------------
   
@@ -149,6 +149,87 @@ calc_expc_avg <- function(wd, nc.file, model.name, start.st, start.lt, lon.lengt
   #save matrix for plotting
   setwd("~/senior_thesis/plotting_dataframes/")
   saveRDS(mean_expc_lt, file = paste(model.name,"_mean_expc_lt.Rds",sep=""), ascii = TRUE)
+  saveRDS(expc_change, file = paste(model.name,"_expc_change.Rds",sep=""), ascii = TRUE)
+  
+}
+
+calc_expc_avg_his <- function(wd, nc.file, model.name, start.st, lon.length, lat.length) {
+  
+  setwd(wd)
+  nc_data <- nc_open(nc.file)
+  
+  #read in MLDmax historical array - MLDmax for each year (these objects come from calc_MLD_max.R)
+  MLD_max_his <- readRDS(paste("~/senior_thesis/plotting_dataframes/mlotst/",model.name,"_array_MLD_max_his.Rds",sep = ""))
+  
+  ## HISTORICAL FOR LOOP ----------------
+  
+  v <- seq(from = start.st, to = start.st + 49, by = 1)
+  
+  #storage container for list of matrices
+  list_expc <- list()
+  #storage container for second for loop
+  output <- matrix(nrow = length(lon.length), ncol = length(lat.length))
+  
+  
+  #creates list of 20 arrays with POC flux at every lat,lon,depth
+  for(k in 1:length(v)) {
+    #read in a year of data
+    t <- v[k]
+    #pulls out array for one year, 3D with lat,lon,depth
+    expc.his <- ncvar_get(nc_data,"expc",start= c(1,1,1,t), count = c(-1,-1,-1,1))*31536000
+    
+    #calculates POC flux at MLD max for every grid cell for one year
+    for(i in 1:length(lon.length)) {
+      for(j in 1:length(lat.length)) {
+        
+        #make list and add needed columns
+        ret <- list()
+        #NOTE - make sure you divide by 100 here if the depth units are in cm (CESM), otherwise the depth units are in m
+        ret$depth <-  ncvar_get(nc_data, "lev") #/100
+        #subset expc for select lat and lon
+        ret$expc <- extract(expc.his, indices = c(i,j), dims = c(1,2))
+        #subset MLD max for each lat and lon
+        ret$MLD <- extract(MLD_max_his[, , k], indices = c(i,j), dims = c(1,2))
+        
+        #ocean values - if a value exists for MLDmax, then interpolate and store new interpolated POC flux in output matrix
+        if (is.na(ret$MLD) == FALSE) {
+          
+          #find interpolated expc at mld max
+          interp <- approx(x = ret$depth, y  = ret$expc, xout = ret$MLD)
+          #store interpolated POC flux into the output matrix
+          output[i, j] <- interp$y[1]
+          #land values - if a value doesn't exist for MLDmax, then don't interpolate, just put an NA value in output matrix  
+        } else {
+          output[i,j] <- NA
+        }
+      }
+    }
+    #store each year of output into a list
+    list_expc[[k]] <- output
+  }
+  
+  
+  #converts from list to matrices
+  expc_his <- do.call(cbind, list_expc)
+  #combines matrices into a single array
+  expc_his <- array(expc_his, dim=c(dim(list_expc[[1]]), length(list_expc)))
+  
+  #20 year mean for the beginning of the 21st century
+  mean_expc_his <- apply(expc_his, c(1, 2), mean, na.rm = FALSE)
+  
+  #save matrix for plotting
+  setwd("~/senior_thesis/plotting_dataframes/expc/")
+  saveRDS(mean_expc_his, file = paste(model.name,"_mean_expc_his.Rds",sep=""), ascii = TRUE)
+
+  
+  #change in expc
+  mean_expc_lt <- readRDS(paste0("~/senior_thesis/plotting_dataframes/expc/",model.name,"_mean_expc_lt.Rds"))
+  expc_change = mean_expc_lt - mean_expc_his
+  
+  
+  #save matrix for plotting
+  setwd("~/senior_thesis/plotting_dataframes/expc/")
+  saveRDS(mean_expc_his, file = paste(model.name,"_mean_expc_his.Rds",sep=""), ascii = TRUE)
   saveRDS(expc_change, file = paste(model.name,"_expc_change.Rds",sep=""), ascii = TRUE)
   
 }

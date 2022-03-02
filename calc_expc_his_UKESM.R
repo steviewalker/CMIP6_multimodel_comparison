@@ -1,0 +1,79 @@
+#' @title Calculate historical POC flux at maximum annual MLD for UKESM
+#' @author Stevie Walker
+#' @date 9/13/21
+#' @description finds the historical 50 year average (1850-1900) POC flux
+#' @note this function takes a very long time to run
+#' @note UKESM is not run using the function calc_expc_avg because you need to take the yearly average first (UKESM expc file is monthly, all the others are yearly)
+
+setwd("~/senior_thesis/")
+source('libraries.R')
+
+#note, this comes from a different directory than short-term UKESM because this was combined
+setwd("~/senior_thesis/combined_UKESM_files/")
+nc_data <- nc_open('expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-189912.nc')
+
+#read in MLDmax arrays - MLDmax for each year (these objects come from calc_MLD_max.R)
+MLD_max_lt <- readRDS("~/senior_thesis/plotting_dataframes/mlotst/UKESM_array_MLD_max_his.Rds")
+
+## SHORT-TERM FOR LOOP ----------------
+
+v <- seq(from = 1, to = 585, by = 12)
+
+lon <- 1:360
+lat <- 1:330
+
+#storage container for list of matrices
+list_expc <- list()
+#storage container for second for loop
+output <- matrix(nrow = length(lon), ncol = length(lat))
+
+#creates list of 20 arrays with POC flux at every lat,lon,depth
+for(k in 1:length(v)) {
+  #read in a year of data
+  t <- v[k]
+  #pulls out array for one year, 3D with lat,lon,depth
+  expc2015 <- ncvar_get(nc_data,"expc",start= c(1,1,1,t), count = c(-1,-1,-1,12))*31536000
+  #take average of 12 months (since UKESM data is monthly)
+  expc2015 <- apply(expc2015, c(1,2,3),mean,na.rm=FALSE)
+  
+  #calculates POC flux at MLD max for every grid cell for one year
+  for(i in 1:length(lon)) {
+    for(j in 1:length(lat)) {
+      
+      #make list and add needed columns
+      ret <- list()
+      #NOTE - make sure you divide by 100 here if the depth units are in cm (CESM), otherwise the depth units are in m
+      ret$depth <-  ncvar_get(nc_data, "lev")
+      #subset expc for select lat and lon
+      ret$expc <- extract(expc2015, indices = c(i,j), dims = c(1,2))
+      #subset MLD max for each lat and lon
+      ret$MLD <- extract(MLD_max_lt[, , k], indices = c(i,j), dims = c(1,2))
+      
+      #ocean values - if a value exists for MLDmax, then interpolate and store new interpolated POC flux in output matrix
+      if (is.na(ret$MLD) == FALSE) {
+        
+        #find interpolated expc at mld max
+        interp <- approx(x = ret$depth, y  = ret$expc, xout = ret$MLD)
+        #store interpolated POC flux into the output matrix
+        output[i, j] <- interp$y[1]
+        #land values - if a value doesn't exist for MLDmax, then don't interpolate, just put an NA value in output matrix  
+      } else {
+        output[i,j] <- NA
+      }
+    }
+  }
+  #store each year of output into a list
+  list_expc[[k]] <- output
+}
+
+#converts from list to matrices
+expc.his <- do.call(cbind, list_expc)
+#combines matrices into a single array
+expc_his <- array(expc_his, dim=c(dim(list_expc[[1]]), length(list_expc)))
+
+#20 year mean for the beginning of the 21st century
+mean_expc_his <- apply(expc_his, c(1, 2), mean, na.rm = FALSE)
+
+#save matrix for plotting
+setwd("~/senior_thesis/plotting_dataframes/expc/")
+saveRDS(mean_expc_lt, file = "UKESM_mean_expc_his.Rds", ascii = TRUE)

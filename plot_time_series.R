@@ -4,6 +4,8 @@
 #' @description plots 4 figures of globally integrated time series at 100m, MLDmax, normalized 100m, and normalized MLDmax
 #' @description also saves tidied and combined time series data frames
 
+#colors for time series
+color = c("violet", "goldenrod2", "aquamarine3", "darkorchid3", "darkorange2", "royalblue2")
 
 ## 1. TIME SERIES AT 100m ---------------
 
@@ -44,10 +46,20 @@ figure <- ggplot(data = df2, aes(x = Year, y = POC_flux_100, color = Model)) +
   labs(title = "Time Series Change in Global POC Flux at 100m (1850-2100)") +
   xlab(NULL) +
   ylab("POC Flux (Pg C/yr)") +
-  scale_y_continuous(n.breaks = 6)
+  scale_y_continuous(n.breaks = 6) +  
+  scale_color_manual(values = color) +
+  theme(plot.title = element_text(size = 18),
+        plot.subtitle = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        legend.key.size = unit(1, 'cm'), 
+        legend.key.height = unit(1, 'cm'), 
+        legend.key.width = unit(1, 'cm'), 
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12))
 
 #save figure
-ggsave(filename = "time_series_100m.png", plot = figure, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
+ggsave(filename = "time_series_100m.png", plot = figure, path = "~/senior_thesis/figures/time_series/", width = 20, height = 12, units = "cm", dpi = 400)
 
 
 ## 2. TIME SERIES AT MLDMAX -------------------
@@ -90,10 +102,22 @@ figure2 <- ggplot(data = df2.expc, aes(x = Year, y = POC_flux_expc, color = Mode
   labs(title = "Time Series Change in Global POC Flux at MLDmax (1850-2100)") +
   xlab(NULL) +
   ylab("POC Flux (Pg C/yr)") +
-  scale_y_continuous(n.breaks = 6)
+  scale_y_continuous(n.breaks = 6) +
+  scale_color_manual(values = color) +
+  theme(plot.title = element_text(size = 18),
+        plot.subtitle = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        legend.key.size = unit(1, 'cm'), 
+        legend.key.height = unit(1, 'cm'), 
+        legend.key.width = unit(1, 'cm'), 
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12))
+
+figure2
 
 #save figure
-ggsave(filename = "time_series_expc.png", plot = figure2, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
+ggsave(filename = "time_series_expc.png", plot = figure2, path = "~/senior_thesis/figures/time_series/", width = 20, height = 12, units = "cm", dpi = 400)
 
 
 ## 3. NORMALIZED POC FLUX AT 100M RELATIVE TO 1850-1900 MEAN ----------------
@@ -135,10 +159,21 @@ figure3 <- ggplot(data = plot.normalized.epc100, aes(x = Year, y = POC_flux_100,
        subtitle = "Relative to 1850-1900 average") +
   xlab(NULL) +
   ylab("Percent Change") +
-  scale_y_continuous(limits = c(60, 112), n.breaks = 6)
+  scale_y_continuous(limits = c(75, 110), n.breaks = 6) +
+  scale_color_manual(values = color) +
+  theme(plot.title = element_text(size = 18),
+        plot.subtitle = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        legend.key.size = unit(1, 'cm'), 
+        legend.key.height = unit(1, 'cm'), 
+        legend.key.width = unit(1, 'cm'), 
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12))
+figure3
 
 #save figure
-ggsave(filename = "normalized_time_series_100m.png", plot = figure3, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
+ggsave(filename = "normalized_time_series_100m.png", plot = figure3, path = "~/senior_thesis/figures/time_series/", width = 20, height = 12, units = "cm", dpi = 400)
 
 
 ## 4. NORMALIZED POC FLUX AT MLD MAX RELATIVE TO 1850-1900 AVG --------------
@@ -181,11 +216,21 @@ figure4 <- ggplot(data = plot.normalized.expc, aes(x = Year, y = POC_flux_MLDmax
        subtitle = "Relative to 1850-1900 average") +
   xlab(NULL) +
   ylab("Percent Change") +
-  scale_y_continuous(limits = c(60, 112), n.breaks = 6)
+  scale_y_continuous(limits = c(75, 110), n.breaks = 6) +
+  scale_color_manual(values = color) +
+  theme(plot.title = element_text(size = 18),
+        plot.subtitle = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        legend.key.size = unit(1, 'cm'), 
+        legend.key.height = unit(1, 'cm'), 
+        legend.key.width = unit(1, 'cm'), 
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12))
 
 
 #save figure
-ggsave(filename = "normalized_time_series_MLDmax.png", plot = figure4, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
+ggsave(filename = "normalized_time_series_MLDmax.png", plot = figure4, path = "~/senior_thesis/figures/time_series/", width = 20, height = 12, units = "cm", dpi = 400)
 
 
 # 5. TIME SERIES AT 1000M -------------
@@ -225,10 +270,20 @@ figure5 <- ggplot(data = df2, aes(x = Year, y = POC_flux_1000, color = Model)) +
   labs(title = "Time Series Change in Global POC Flux at 1000m (1850-2100)") +
   xlab(NULL) +
   ylab("POC Flux (Pg C/yr)") +
-  scale_y_continuous(n.breaks = 6)
+  scale_y_continuous(n.breaks = 6) +
+  scale_color_manual(values = color) +
+  theme(plot.title = element_text(size = 18),
+        plot.subtitle = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        legend.key.size = unit(1, 'cm'), 
+        legend.key.height = unit(1, 'cm'), 
+        legend.key.width = unit(1, 'cm'), 
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12))
 
 #save figure
-ggsave(filename = "time_series_1000m.png", plot = figure, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
+ggsave(filename = "time_series_1000m.png", plot = figure, path = "~/senior_thesis/figures/time_series/", width = 20, height = 12, units = "cm", dpi = 400)
 
 
 ## 6. NORMALIZED POC FLUX AT 1000M RELATIVE TO 1850-1900 AVG --------------
@@ -256,7 +311,7 @@ normalized.1000 <- normalized.1000 %>%
   relocate(Year, .before = CESM) 
 
 #save df
-write_csv(normalized.1000, "~/senior_thesis/plotting_dataframes/time_series/normalized_time_series_1000.csv")
+write_csv(normalized.1000, "~/senior_thesis/plotting_dataframes/time_series/1000_time_series_normalized.csv")
 
 
 #add column for model key (reformatting data specific to the below plot)
@@ -271,11 +326,21 @@ figure6 <- ggplot(data = plot.normalized.1000, aes(x = Year, y = POC_flux_1000, 
        subtitle = "Relative to 1850-1900 average") +
   xlab(NULL) +
   ylab("Percent Change") +
-  scale_y_continuous(limits = c(60, 112), n.breaks = 6)
+  scale_color_manual(values = color) +
+  theme(plot.title = element_text(size = 18),
+        plot.subtitle = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        legend.key.size = unit(1, 'cm'), 
+        legend.key.height = unit(1, 'cm'), 
+        legend.key.width = unit(1, 'cm'), 
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12))#+
+#scale_y_continuous(limits = c(60, 112), n.breaks = 6)
 
 
 #save figure
-ggsave(filename = "normalized_time_series_1000m.png", plot = figure4, path = "~/senior_thesis/figures/", width = 20, height = 12, units = "cm", dpi = 400)
+ggsave(filename = "normalized_time_series_1000m.png", plot = figure6, path = "~/senior_thesis/figures/time_series/", width = 20, height = 12, units = "cm", dpi = 400)
 
 
 
@@ -283,10 +348,10 @@ ggsave(filename = "normalized_time_series_1000m.png", plot = figure4, path = "~/
 
 combined <- grid.arrange(figure3, figure4,figure6, ncol = 1)
 
-ggsave(filename = "normalized_time_series_faceted.png", plot = combined, path = "~/senior_thesis/figures/", width = 20, height = 36, units = "cm", dpi = 400)
+ggsave(filename = "normalized_time_series_faceted.png", plot = combined, path = "~/senior_thesis/figures/faceted/", width = 20, height = 36, units = "cm", dpi = 400)
 
 combined2 <- grid.arrange(figure, figure2, figure5, ncol = 1)
 
-ggsave(filename = "time_series_faceted.png", plot = combined2, path = "~/senior_thesis/figures/", width = 20, height = 36, units = "cm", dpi = 400)
+ggsave(filename = "time_series_faceted.png", plot = combined2, path = "~/senior_thesis/figures/faceted/", width = 20, height = 36, units = "cm", dpi = 400)
 
 

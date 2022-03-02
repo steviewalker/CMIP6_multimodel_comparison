@@ -62,7 +62,7 @@ UKESM_1000_time_series_his <- function(file, wd, model.name, area.name, start.da
         ret$expc <- extract(expc, indices = c(i,j), dims = c(1,2))
         #subset MLD max for each lat and lon, add the appropriate number of steps based on the file used, ex. 1850-1900 = 0, 1900-1950 = 50, etc.
         #or based on the last year used, ex. 1998-1850 = 148
-        ret$MLD <- extract(MLD.his[, , k], indices = c(i,j), dims = c(1,2))
+        ret$MLD <- extract(MLD.his[, , k+50], indices = c(i,j), dims = c(1,2))
         #depth
         ret$dh <- 1000
         
@@ -153,7 +153,7 @@ UKESM_1000_time_series_fut <- function(file, wd, model.name, area.name, start.da
         ret$expc <- extract(expc, indices = c(i,j), dims = c(1,2))
         #subset MLD max for each lat and lon, add the appropriate number of steps based on the file used, ex. 1850-1900 = 0, 1900-1950 = 50, etc.
         #or based on the last year used, ex. 1998-1850 = 148
-        ret$MLD <- extract(MLD.fut[, , k+36], indices = c(i,j), dims = c(1,2))
+        ret$MLD <- extract(MLD.fut[, , k], indices = c(i,j), dims = c(1,2))
         #depth
         ret$dh <- 1000
         

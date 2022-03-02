@@ -30,10 +30,10 @@ The project notebook is numbered by section, and here is my guide for running th
 
 - grab_metadata.R: make sure there are no files but nc files in the combined files folder
 
-6. calculate POC flux averages at 100m
+6. calculate POC flux averages at 100m (short-term, long-term, and historical)
 
 - get_time.R: I use this function a lot for setting all the start and end time steps in each model calculation. Prints the converted dates for each nc file time step
-- calc_epc100_avg.R
+- calc_epc100_avg.R: contains calc_epc100_avg and calc_epc100_avg_his functions, the first for short and long-term, and the second for historical
 
 7. plotting POC flux averages at 100m
 
@@ -44,7 +44,7 @@ The project notebook is numbered by section, and here is my guide for running th
 9. calculate MLDmax averages
 
 - get_time.R
-- calc_MLD_max.R
+- calc_MLD_max.R: contains calc_MLD_max for short and long term, and calc_MLD_max_his for historical averages
 
 10. plotting MLDmax averages
 
