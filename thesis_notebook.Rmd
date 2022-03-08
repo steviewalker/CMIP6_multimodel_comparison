@@ -41,12 +41,12 @@ idx <- init_cmip6_index(
   # specify GCM names
   source = c("GFDL-ESM4"),
   
- # "UKESM1-0-LL", "CMCC-ESM2", "EC-Earth3-CC","GFDL-ESM4","MPI-ESM1-2-HR"
+  # "UKESM1-0-LL", "CMCC-ESM2", "EC-Earth3-CC","GFDL-ESM4","MPI-ESM1-2-HR"
   # specify variant,
   variant = c("r1i1p1f1"),
   
- #"r1i1p1f1","r10i1p1f1","r1i1p1f2"
- 
+  #"r1i1p1f1","r10i1p1f1","r1i1p1f2"
+  
   # save to data directory
   save = FALSE
 )
@@ -201,7 +201,7 @@ model.scenarios <- list.files("~/senior_thesis/UKESM_data/", pattern = "*_gn_*.*
   str_split(.,"_gn") %>% 
   unlist %>% 
   #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
-  grep("mlotst_Omon_UKESM1-0-LL_historical_r1i1p1f2",., value = TRUE) %>% 
+  grep("pp_Omon_UKESM1-0-LL_historical_r1i1p1f2",., value = TRUE) %>% 
   unique()
 
 data.path <- "~/senior_thesis/UKESM_data/"
@@ -275,7 +275,7 @@ model.scenarios <- list.files("~/senior_thesis/cmip6_data/", pattern = "*_gn_*.*
   str_split(.,"_gn") %>% 
   unlist %>% 
   #switch between variables and model reps here. You can do this manually here, then rerun. ( Note on 2/8/21)
-  grep("pp_Omon_CMCC-ESM2_ssp585_r1i1p1f1",., value = TRUE) %>% 
+  grep("pp_Omon_CMCC-ESM2_historical_r1i1p1f1",., value = TRUE) %>% 
   unique()
 
 data.path <- "~/senior_thesis/cmip6_data/"
@@ -750,11 +750,11 @@ get_time(data.path = "~/senior_thesis/combined_CESM_files/",
          file.name = 'expc_Oyr_CESM2_historical_r10i1p1f1_gn_1850-2014.nc')
 
 calc_expc_avg_his(wd = "~/senior_thesis/combined_CESM_files/",
-              nc.file = 'expc_Oyr_CESM2_historical_r10i1p1f1_gn_1850-2014.nc',
-              model.name = "CESM",
-              start.st = 2,
-              lon.length = 1:320,
-              lat.length = 1:384)
+                  nc.file = 'expc_Oyr_CESM2_historical_r10i1p1f1_gn_1850-2014.nc',
+                  model.name = "CESM",
+                  start.st = 2,
+                  lon.length = 1:320,
+                  lat.length = 1:384)
 
 #remember to re-comment 100m line
 
@@ -777,11 +777,11 @@ get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
          file.name = 'expc_Oyr_CMCC-ESM2_historical_r1i1p1f1_gn_1850-2014.nc')
 
 calc_expc_avg_his(wd = "~/senior_thesis/combined_CMCC_files/",
-              nc.file = 'expc_Oyr_CMCC-ESM2_historical_r1i1p1f1_gn_1850-2014.nc',
-              model.name = "CMCC",
-              start.st = 1,
-              lon.length = 1:362,
-              lat.length = 1:292)
+                  nc.file = 'expc_Oyr_CMCC-ESM2_historical_r1i1p1f1_gn_1850-2014.nc',
+                  model.name = "CMCC",
+                  start.st = 1,
+                  lon.length = 1:362,
+                  lat.length = 1:292)
 
 ##EC-Earth ----------
 
@@ -800,11 +800,11 @@ get_time(data.path = "~/senior_thesis/combined_EC-Earth_files/",
          file.name = 'expc_Oyr_EC-Earth3-CC_historical_r1i1p1f1_gn_1850-2014.nc')
 
 calc_expc_avg_his(wd = "~/senior_thesis/combined_EC-Earth_files/",
-              nc.file = 'expc_Oyr_EC-Earth3-CC_historical_r1i1p1f1_gn_1850-2014.nc',
-              model.name = "EC-Earth",
-              start.st = 1,
-              lon.length = 1:362,
-              lat.length = 1:292)
+                  nc.file = 'expc_Oyr_EC-Earth3-CC_historical_r1i1p1f1_gn_1850-2014.nc',
+                  model.name = "EC-Earth",
+                  start.st = 1,
+                  lon.length = 1:362,
+                  lat.length = 1:292)
 
 ##GFDL -------
 
@@ -823,11 +823,11 @@ get_time(data.path = "~/senior_thesis/combined_GFDL_files/",
          file.name = 'expc_Oyr_GFDL-ESM4_historical_r1i1p1f1_gr_1850-2014.nc')
 
 calc_expc_avg_his(wd = "~/senior_thesis/combined_GFDL_files/",
-              nc.file = 'expc_Oyr_GFDL-ESM4_historical_r1i1p1f1_gr_1850-2014.nc',
-              model.name = "GFDL",
-              start.st = 1,
-              lon.length = 1:360,
-              lat.length = 1:180)
+                  nc.file = 'expc_Oyr_GFDL-ESM4_historical_r1i1p1f1_gr_1850-2014.nc',
+                  model.name = "GFDL",
+                  start.st = 1,
+                  lon.length = 1:360,
+                  lat.length = 1:180)
 
 
 ##MPI --------
@@ -848,11 +848,11 @@ get_time(data.path = "~/senior_thesis/combined_MPI_files/",
          file.name = 'expc_Oyr_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1850-2014.nc')
 
 calc_expc_avg_his(wd = "~/senior_thesis/combined_MPI_files/",
-              nc.file = 'expc_Oyr_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1850-2014.nc',
-              model.name = "MPI",
-              start.st = 1,
-              lon.length = 1:802,
-              lat.length = 1:404)
+                  nc.file = 'expc_Oyr_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1850-2014.nc',
+                  model.name = "MPI",
+                  start.st = 1,
+                  lon.length = 1:802,
+                  lat.length = 1:404)
 
 ##UKESM ----------
 
@@ -2144,72 +2144,72 @@ get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
          file.name = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-189912.nc')
 
 UKESM_1000_time_series_his(file = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-189912.nc',
-                      wd = "~/senior_thesis/combined_UKESM_files",
-                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
-                      start.date = 1,
-                      end.date = 585,
-                      year.seq = seq(from = 1850, to = 1898, by = 1),
-                      section = "1850_1900")
+                           wd = "~/senior_thesis/combined_UKESM_files",
+                           area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                           start.date = 1,
+                           end.date = 585,
+                           year.seq = seq(from = 1850, to = 1898, by = 1),
+                           section = "1850_1900")
 
 # 2) expc 1900-1950 +50
 get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
          file.name = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_190001-194912.nc')
 
 UKESM_1000_time_series_his(file = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_190001-194912.nc',
-                      wd = "~/senior_thesis/combined_UKESM_files",
-                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
-                      start.date = 10,
-                      end.date = 582,
-                      year.seq = seq(from = 1900, to = 1947, by = 1),
-                      section = "1900_1950")
+                           wd = "~/senior_thesis/combined_UKESM_files",
+                           area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                           start.date = 10,
+                           end.date = 582,
+                           year.seq = seq(from = 1900, to = 1947, by = 1),
+                           section = "1900_1950")
 
 # 3) expc 1950-2000 +98
 get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
          file.name = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_195001-199912.nc')
 
 UKESM_1000_time_series_his(file = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_195001-199912.nc',
-                      wd = "~/senior_thesis/combined_UKESM_files",
-                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
-                      start.date = 6,
-                      end.date = 578,
-                      year.seq = seq(from = 1948, to = 1996, by = 1),
-                      section = "1950_2000")
+                           wd = "~/senior_thesis/combined_UKESM_files",
+                           area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                           start.date = 6,
+                           end.date = 578,
+                           year.seq = seq(from = 1948, to = 1996, by = 1),
+                           section = "1950_2000")
 
 # 4) expc 2000-2015 +148
 get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
          file.name = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_200001-201412.nc')
 
 UKESM_1000_time_series_his(file = 'expc_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_200001-201412.nc',
-                      wd = "~/senior_thesis/combined_UKESM_files",
-                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
-                      start.date = 3,
-                      end.date = 161,
-                      year.seq = seq(from = 1998, to = 2011, by = 1),
-                      section = "2000_2015")
+                           wd = "~/senior_thesis/combined_UKESM_files",
+                           area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                           start.date = 3,
+                           end.date = 161,
+                           year.seq = seq(from = 1998, to = 2011, by = 1),
+                           section = "2000_2015")
 
 # 5) expc 2015-2050 +0
 get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
          file.name = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc')
 
 UKESM_1000_time_series_fut(file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-204912.nc',
-                      wd = "~/senior_thesis/combined_UKESM_files",
-                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
-                      start.date = 5,
-                      end.date = 407,
-                      year.seq = seq(from = 2013, to = 2046, by = 1),
-                      section = "2015_2050")
+                           wd = "~/senior_thesis/combined_UKESM_files",
+                           area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                           start.date = 5,
+                           end.date = 407,
+                           year.seq = seq(from = 2013, to = 2046, by = 1),
+                           section = "2015_2050")
 
 # 6) expc 2050-2100 +36
 get_time(data.path = "~/senior_thesis/combined_UKESM_files/",
          file.name = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_205001-210012.nc')
 
 UKESM_1000_time_series_fut(file = 'expc_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_205001-210012.nc',
-                      wd = "~/senior_thesis/combined_UKESM_files",
-                      area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
-                      start.date = 12,
-                      end.date = 596,
-                      year.seq = seq(from = 2048, to = 2096, by = 1),
-                      section = "2050_2100")
+                           wd = "~/senior_thesis/combined_UKESM_files",
+                           area.name = 'areacello_Ofx_UKESM1-0-LL_piControl_r1i1p1f2_gn.nc',
+                           start.date = 12,
+                           end.date = 596,
+                           year.seq = seq(from = 2048, to = 2096, by = 1),
+                           section = "2050_2100")
 
 # 7) Combine csv files
 
@@ -2359,11 +2359,22 @@ get_time(data.path = "~/senior_thesis/combined_CESM_files/",
 #Z length: 15
 
 calc_npp_avg(wd = "~/senior_thesis/combined_CESM_files",
-              nc.file = 'pp_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
-              model.name = "CESM",
-              start.lt = 66,
-              lon.length = 1:320,
-              lat.length = 1:384)
+             nc.file = 'pp_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+             model.name = "CESM",
+             start.lt = 66,
+             lon.length = 1:320,
+             lat.length = 1:384)
+
+#historical
+get_time(data.path = "~/senior_thesis/combined_CESM_files/",
+         file.name = 'pp_Oyr_CESM2_historical_r10i1p1f1_gn_1850-2014.nc')
+
+calc_npp_avg_his(wd = "~/senior_thesis/combined_CESM_files",
+                 nc.file = 'pp_Oyr_CESM2_historical_r10i1p1f1_gn_1850-2014.nc',
+                 model.name = "CESM",
+                 start.his = 2,
+                 lon.length = 1:320,
+                 lat.length = 1:384)
 
 ## CMCC -----------
 
@@ -2374,11 +2385,22 @@ get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
 #Z length = 50
 
 calc_npp_avg(wd = "~/senior_thesis/combined_CMCC_files",
-              nc.file = 'pp_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc',
-              model.name = "CMCC",
-              start.lt = 771,
-              lon.length = 1:362,
-              lat.length = 1:292)
+             nc.file = 'pp_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc',
+             model.name = "CMCC",
+             start.lt = 771,
+             lon.length = 1:362,
+             lat.length = 1:292)
+
+#historical
+get_time(data.path = "~/senior_thesis/combined_CMCC_files/",
+         file.name = 'pp_Omon_CMCC-ESM2_historical_r1i1p1f1_gn_185001-201412.nc')
+
+calc_npp_avg_his(wd = "~/senior_thesis/combined_CMCC_files",
+                 nc.file = 'pp_Omon_CMCC-ESM2_historical_r1i1p1f1_gn_185001-201412.nc',
+                 model.name = "CMCC",
+                 start.his = 1,
+                 lon.length = 1:362,
+                 lat.length = 1:292)
 
 ## EC-Earth ---------
 
@@ -2392,11 +2414,20 @@ get_time(data.path = "~/senior_thesis/combined_GFDL_files/", file.name = 'pp_Oyr
 #Z length = 35
 
 calc_npp_avg(wd = "~/senior_thesis/combined_GFDL_files",
-              nc.file = 'pp_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
-              model.name = "GFDL",
-              start.lt = 65,
-              lon.length = 1:360,
-              lat.length = 1:180)
+             nc.file = 'pp_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+             model.name = "GFDL",
+             start.lt = 65,
+             lon.length = 1:360,
+             lat.length = 1:180)
+
+get_time(data.path = "~/senior_thesis/combined_GFDL_files/", file.name = 'pp_Oyr_GFDL-ESM4_historical_r1i1p1f1_gr_1850-2014.nc')
+
+calc_npp_avg_his(wd = "~/senior_thesis/combined_GFDL_files",
+                 nc.file = 'pp_Oyr_GFDL-ESM4_historical_r1i1p1f1_gr_1850-2014.nc',
+                 model.name = "GFDL",
+                 start.his = 1,
+                 lon.length = 1:360,
+                 lat.length = 1:180)
 
 ## MPI ----------
 
@@ -2405,11 +2436,20 @@ get_time(data.path = "~/senior_thesis/combined_MPI_files/", file.name = 'pp_Oyr_
 #Z length = 40
 
 calc_npp_avg(wd = "~/senior_thesis/combined_MPI_files",
-              nc.file = 'pp_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
-              model.name = "MPI",
-              start.lt = 45,
-              lon.length = 1:802,
-              lat.length = 1:404)
+             nc.file = 'pp_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+             model.name = "MPI",
+             start.lt = 45,
+             lon.length = 1:802,
+             lat.length = 1:404)
+
+get_time(data.path = "~/senior_thesis/combined_MPI_files/", file.name = 'pp_Oyr_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1850-2014.nc')
+
+calc_npp_avg_his(wd = "~/senior_thesis/combined_MPI_files",
+                 nc.file = 'pp_Oyr_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1850-2014.nc',
+                 model.name = "MPI",
+                 start.his = 1,
+                 lon.length = 1:802,
+                 lat.length = 1:404)
 
 #note for completing time series calcs - this file is missing a couple years
 
@@ -2421,11 +2461,20 @@ get_time(data.path = "~/senior_thesis/combined_UKESM_files/", file.name = 'pp_Om
 
 #had to take this one's average from 2076-2096 due to missing end of 21st century data
 calc_npp_avg(wd = "~/senior_thesis/combined_UKESM_files",
-              nc.file = 'pp_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc',
-              model.name = "UKESM",
-              start.lt = 785,
-              lon.length = 1:360,
-              lat.length = 1:330)
+             nc.file = 'pp_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc',
+             model.name = "UKESM",
+             start.lt = 785,
+             lon.length = 1:360,
+             lat.length = 1:330)
+
+get_time(data.path = "~/senior_thesis/combined_UKESM_files/", file.name = 'pp_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-189912.nc')
+
+calc_npp_avg_his(wd = "~/senior_thesis/combined_UKESM_files",
+                 nc.file = 'pp_Omon_UKESM1-0-LL_historical_r1i1p1f2_gn_185001-189912.nc',
+                 model.name = "UKESM",
+                 start.his = 1,
+                 lon.length = 1:360,
+                 lat.length = 1:330)
 
 ```
 
@@ -2437,6 +2486,7 @@ source('plot_NPP.R')
 
 ## CESM ------------
 
+
 plot_NPP(wd = "~/senior_thesis/combined_CESM_files/",
          nc.file = 'pp_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
          model.name = "CESM",
@@ -2445,11 +2495,98 @@ plot_NPP(wd = "~/senior_thesis/combined_CESM_files/",
 
 # CMCC ------------
 
+
 plot_NPP(wd = "~/senior_thesis/combined_CMCC_files/",
          nc.file = 'pp_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc',
          model.name = "CMCC",
          lat.name = "latitude",
          lon.name = "longitude")
+
+# GFDL ---------
+
+plot_NPP(wd = "~/senior_thesis/combined_GFDL_files/",
+         nc.file = 'pp_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+         model.name = "GFDL",
+         lat.name = "lat",
+         lon.name = "lon")
+
+# MPI --------
+
+plot_NPP(wd = "~/senior_thesis/combined_MPI_files/",
+         nc.file = 'pp_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+         model.name = "MPI",
+         lat.name = "latitude",
+         lon.name = "longitude")
+
+# UKESM ---------
+
+plot_NPP(wd = "~/senior_thesis/combined_UKESM_files/",
+         nc.file = 'pp_Omon_UKESM1-0-LL_ssp585_r1i1p1f2_gn_201501-210012.nc',
+         model.name = "UKESM",
+         lat.name = "latitude",
+         lon.name = "longitude")
+
+```
+
+31. Calculate globally integrated NPP time series (1850-2100)
+```{r}
+
+setwd("~/senior_thesis/")
+source("libraries.R")
+source("get_time.R")
+source("calc_time_series_npp.R")
+
+## CESM --------------
+
+#Z length = 15
+time_series_npp(wd = "~/senior_thesis/combined_CESM_files",
+                model.name = "CESM",
+                fut.name = 'pp_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc',
+                his.name = 'pp_Oyr_CESM2_historical_r10i1p1f1_gn_1850-2014.nc',
+                area.name = 'areacello_Ofx_CESM2_ssp585_r10i1p1f1_gn.nc',
+                lon.length = 1:320,
+                lat.length = 1:384)
+
+## CMCC --------------
+
+# v = 1:85 and 1:164
+#Z length = 50
+time_series_npp(wd = "~/senior_thesis/combined_CMCC_files",
+                 model.name = "CMCC",
+                 fut.name = 'pp_Omon_CMCC-ESM2_ssp585_r1i1p1f1_gn_201501-210012.nc',
+                 his.name = 'pp_Omon_CMCC-ESM2_historical_r1i1p1f1_gn_185001-201412.nc',
+                 area.name = 'areacello_Ofx_CMCC-ESM2_historical_r1i1p1f1_gn.nc',
+                 lon.length = 1:362,
+                 lat.length = 1:292)
+
+
+## EC-Earth -------------
+
+#missing data
+
+## GFDL ----------------
+
+#v = 1:85 and 1:164
+#Z length = 35
+time_series_npp(wd = "~/senior_thesis/combined_GFDL_files",
+                 model.name = "GFDL",
+                 fut.name = 'pp_Oyr_GFDL-ESM4_ssp585_r1i1p1f1_gr_2015-2100.nc',
+                 his.name = 'pp_Oyr_GFDL-ESM4_historical_r1i1p1f1_gr_1850-2014.nc',
+                 area.name = 'areacello_Ofx_GFDL-ESM4_historical_r1i1p1f1_gr.nc',
+                 lon.length = 1:360,
+                 lat.length = 1:180)
+
+#MPI -----------
+
+#Z length = 50
+time_series_npp(wd = "~/senior_thesis/combined_MPI_files",
+                 model.name = "MPI",
+                 fut.name = 'pp_Oyr_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn_2015-2100.nc',
+                 his.name = 'pp_Oyr_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1850-2014.nc',
+                 area.name = 'areacello_Ofx_MPI-ESM1-2-HR_ssp585_r1i1p1f1_gn.nc',
+                 lon.length = 1:802,
+                 lat.length = 1:404)
+
 
 ```
 

@@ -123,4 +123,20 @@ Steps:
 27. Plot time series data
 
 - plot_time_series.R: tidies up time series csv files from step 25 for plotting. Produces 6 figures, three of POC flux time series output for each depth horizon, and three for normalized time series output for each depth horizon
-- plot_faceted_time_series.R: function to produce depth horizon comparison figures. 
+- plot_faceted_time_series.R: function to produce depth horizon comparison figures.
+
+28. Plot sample NPP depth profiles for each model
+
+- NPP_evaluating.R
+
+29.Calculate column-integrated NPP averages - long-term (2079-2099) and historical (1850-1900)
+
+- calc_NPP.R: 1) uncomment/comment length sequence lines for yearly vs monthly data, line 23 2) uncomment/comment ncvar_get for yearly vs monthly data, line 41, 3) uncomment/comment depth for CESM, line 54, 4) change [1:x] and npp column name to match the number of depth cells, line 65 and 70
+
+30. Plot global maps of NPP, one three panel fig with long-term, historical, and change, one single panel with change
+
+- plot_NPP.R
+
+31. Calculate globally integrated NPP time series (1850-2100). UKESM must be run in chunks since the files are too big to combine. 
+
+- calc_time_series_NPP.R: 1) uncomment/comment length sequence lines for yearly vs monthly data 2) uncomment/comment ncvar_get for yearly vs monthly data 3) uncomment/comment depth for CESM 4) change [1:x] and npp column name to match the number of depth cells, line 65 and 70
