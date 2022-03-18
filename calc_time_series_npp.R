@@ -26,11 +26,15 @@ time_series_npp <- function(wd, model.name, fut.name, his.name, area.name, lon.l
   ## future calculation --------------------------------------------
   
   #length should be about 85 years
-  v <- 1:86
+  v <- 1:85
+  
+  #for monthly data
+  #start.ts = 2 #CMCC
+  #v <- seq(from = start.ts, to = start.ts + 1010, by = 12)
   
   #make first column of the vector (to be combined later)
   #NOTE: double check the start and end years for each model
-  year <- seq(from = 2014, to = 2099, by = 1)
+  year <- seq(from = 2015, to = 2099, by = 1)
   
   #final vector output 
   npp_fut = vector(mode = "numeric", length = length(v))
@@ -43,11 +47,11 @@ time_series_npp <- function(wd, model.name, fut.name, his.name, area.name, lon.l
     t <- v[k]
     #pulls out array for one year, 3D with lat,lon,depth
     #yearly
-    npp <- ncvar_get(nc_data_2015, "pp", start = c(1,1,1,t), count = c(-1,-1,-1,1))*31536000
+    #npp <- ncvar_get(nc_data_2015, "pp", start = c(1,1,1,t), count = c(-1,-1,-1,1))*31536000
     
     #monthly
-    #npp <- ncvar_get(nc_file, "pp", start = c(1,1,1,t), count = c(-1,-1,-1,12))*31536000 #convert to mol m-3 yr-1
-    #npp <- apply(npp, c(1,2,3),mean,na.rm=FALSE)
+    npp <- ncvar_get(nc_data_2015, "pp", start = c(1,1,1,t), count = c(-1,-1,-1,12))*31536000 #convert to mol m-3 yr-1
+    npp <- apply(npp, c(1,2,3),mean,na.rm=FALSE)
     
     #calculates column integrated npp for one year
     for(i in 1:length(lon.length)) {
@@ -56,7 +60,7 @@ time_series_npp <- function(wd, model.name, fut.name, his.name, area.name, lon.l
         #make list and add needed columns
         ret <- list()
         #NOTE - make sure you divide by 100 here if the depth units are in cm (CESM), otherwise the depth units are in m
-        ret$depth <-  ncvar_get(nc_data_2015, "lev") /100
+        ret$depth <-  ncvar_get(nc_data_2015, "lev") #/100
         #subset npp for select lat and lon
         ret$npp <- extract(npp, indices = c(i,j), dims = c(1,2))
         #true/false test (pulls out first )
@@ -67,12 +71,12 @@ time_series_npp <- function(wd, model.name, fut.name, his.name, area.name, lon.l
           
           #create data frame
           #NOTE: need to change [1:x] to match the number of depth cells
-          profile <- data.frame(ret$depth, ret$npp[1:15]) %>%
+          profile <- data.frame(ret$depth, ret$npp[1:50]) %>%
             as_tibble() 
           #rename depth column
           profile <- dplyr::rename(profile, depth = ret.depth)
           #also change this to match number of depth cells
-          profile <- dplyr::rename(profile, npp = ret.npp.1.15.)
+          profile <- dplyr::rename(profile, npp = ret.npp.1.50.)
           
           #add calculated column height
           profile <- profile %>% 
@@ -109,7 +113,7 @@ time_series_npp <- function(wd, model.name, fut.name, his.name, area.name, lon.l
     sum_flux <- sum_flux*12.01/1000000000000000
     
     #assign globally integrated POC flux value from t year to the output vector
-    npp_fut[t] = sum_flux
+    npp_fut[k] = sum_flux
   }
   
   df.fut <- qpcR:::cbind.na(year,npp_fut)
@@ -118,11 +122,14 @@ time_series_npp <- function(wd, model.name, fut.name, his.name, area.name, lon.l
   
   #make first column of the vector (to be combined later)
   #NOTE: double check the start and end years for each model adjust these yearly values accordingly
-  year <- seq(from = 1849, to = 2013, by = 1)
+  year <- seq(from = 1850, to = 2014, by = 1)
   
   #length should be about 164 years 
-  # NOTE: MPI expc historical data only runs up to 2000, so make length 150 and change year sequence
   v <- 1:165
+  
+  #for monthly data
+  #start.ts2 = 1 #CMCC
+  #v <- seq(from = start.ts2, to = start.ts2 + 1958, by = 12)
   
   #final vector output 
   npp_his = vector(mode = "numeric", length = length(v))
@@ -135,11 +142,11 @@ time_series_npp <- function(wd, model.name, fut.name, his.name, area.name, lon.l
     t <- v[k]
     #pulls out array for one year, 3D with lat,lon,depth
     #yearly
-    npp <- ncvar_get(nc_data_1850, "pp", start = c(1,1,1,t), count = c(-1,-1,-1,1))*31536000
+    #npp <- ncvar_get(nc_data_1850, "pp", start = c(1,1,1,t), count = c(-1,-1,-1,1))*31536000
     
     #monthly
-    #npp <- ncvar_get(nc_file, "pp", start = c(1,1,1,t), count = c(-1,-1,-1,12))*31536000 #convert to mol m-3 yr-1
-    #npp <- apply(npp, c(1,2,3),mean,na.rm=FALSE)
+    npp <- ncvar_get(nc_data_1850, "pp", start = c(1,1,1,t), count = c(-1,-1,-1,12))*31536000 #convert to mol m-3 yr-1
+    npp <- apply(npp, c(1,2,3),mean,na.rm=FALSE)
     
     #calculates column integrated npp for one year
     for(i in 1:length(lon.length)) {
@@ -148,7 +155,7 @@ time_series_npp <- function(wd, model.name, fut.name, his.name, area.name, lon.l
         #make list and add needed columns
         ret <- list()
         #NOTE - make sure you divide by 100 here if the depth units are in cm (CESM), otherwise the depth units are in m
-        ret$depth <-  ncvar_get(nc_data_1850, "lev") /100
+        ret$depth <-  ncvar_get(nc_data_1850, "lev") #/100
         #subset npp for select lat and lon
         ret$npp <- extract(npp, indices = c(i,j), dims = c(1,2))
         #true/false test (pulls out first )
@@ -159,12 +166,12 @@ time_series_npp <- function(wd, model.name, fut.name, his.name, area.name, lon.l
           
           #create data frame
           #NOTE: need to change [1:x] to match the number of depth cells
-          profile <- data.frame(ret$depth, ret$npp[1:15]) %>%
+          profile <- data.frame(ret$depth, ret$npp[1:50]) %>%
             as_tibble() 
           #rename depth column
           profile <- dplyr::rename(profile, depth = ret.depth)
           #also change this to match number of depth cells
-          profile <- dplyr::rename(profile, npp = ret.npp.1.15.)
+          profile <- dplyr::rename(profile, npp = ret.npp.1.50.)
           
           #add calculated column height
           profile <- profile %>% 
@@ -201,7 +208,7 @@ time_series_npp <- function(wd, model.name, fut.name, his.name, area.name, lon.l
     sum_flux <- sum_flux*12.01/1000000000000000
     
     #assign globally integrated POC flux value from t year to the output vector
-    npp_his[t] = sum_flux
+    npp_his[k] = sum_flux
   }
   
   #binds npp_flux vector to year vector

@@ -62,12 +62,12 @@ calc_npp_avg <- function(wd, nc.file, model.name, start.lt, lon.length, lat.leng
           
           #create data frame
           #NOTE: need to change [1:x] to match the number of depth cells
-          profile <- data.frame(ret$depth, ret$npp[1:15]) %>%
+          profile <- data.frame(ret$depth, ret$npp[1:75]) %>%
             as_tibble() 
           #rename depth column
           profile <- rename(profile, depth = ret.depth)
           #also change this to match number of depth cells
-          profile <- rename(profile, npp = ret.npp.1.15.)
+          profile <- rename(profile, npp = ret.npp.1.75.)
           
           #add calculated column height
           profile <- profile %>% 

@@ -35,7 +35,7 @@ df <- df[-c(166:196), ]
 write_csv(df, file = "~/senior_thesis/plotting_dataframes/time_series/time_series_epc100_all.csv")
 
 #add column for model key (reformatting data specific to the below plot)
-df2 <- melt(df,  id.vars = 'Year', value.name = 'POC_flux_100', variable.name = "Model")
+df2 <- data.table::melt(df,  id.vars = 'Year', value.name = 'POC_flux_100', variable.name = "Model")
 
 
 #plot time series at 100m
@@ -89,7 +89,7 @@ df.expc <- time.series2 %>%
   reduce(left_join, by = "Year")
 
 #add column for model key
-df2.expc <- melt(df.expc,  id.vars = 'Year', value.name = 'POC_flux_expc', variable.name = "Model")
+df2.expc <- data.table::melt(df.expc,  id.vars = 'Year', value.name = 'POC_flux_expc', variable.name = "Model")
 
 #save POC flux at MLDmax time-series data frame for all models
 write_csv(df.expc, file = "~/senior_thesis/plotting_dataframes/time_series/time_series_expc_all.csv")
@@ -148,7 +148,7 @@ normalized.epc100 <- normalized.epc100 %>%
 write_csv(normalized.epc100, "~/senior_thesis/plotting_dataframes/time_series/normalized_time_series_epc100.csv")
 
 #add column for model key (reformatting data specific to the below plot)
-plot.normalized.epc100 <- melt(normalized.epc100,  id.vars = 'Year', value.name = 'POC_flux_100', variable.name = "Model")
+plot.normalized.epc100 <- data.table::melt(normalized.epc100,  id.vars = 'Year', value.name = 'POC_flux_100', variable.name = "Model")
 
 #plot time series at 100m
 figure3 <- ggplot(data = plot.normalized.epc100, aes(x = Year, y = POC_flux_100, color = Model)) +
@@ -205,7 +205,7 @@ write_csv(normalized.expc, "~/senior_thesis/plotting_dataframes/time_series/norm
 
 
 #add column for model key (reformatting data specific to the below plot)
-plot.normalized.expc <- melt(normalized.expc,  id.vars = 'Year', value.name = 'POC_flux_MLDmax', variable.name = "Model")
+plot.normalized.expc <- data.table::melt(normalized.expc,  id.vars = 'Year', value.name = 'POC_flux_MLDmax', variable.name = "Model")
 
 #plot time series at 100m
 figure4 <- ggplot(data = plot.normalized.expc, aes(x = Year, y = POC_flux_MLDmax, color = Model)) +
@@ -259,7 +259,7 @@ df <- time.series %>%
 write_csv(df, file = "~/senior_thesis/plotting_dataframes/time_series/time_series_1000_all.csv")
 
 #add column for model key (reformatting data specific to the below plot)
-df2 <- melt(df,  id.vars = 'Year', value.name = 'POC_flux_1000', variable.name = "Model")
+df2 <- data.table::melt(df,  id.vars = 'Year', value.name = 'POC_flux_1000', variable.name = "Model")
 
 
 #plot time series at 100m
@@ -315,7 +315,7 @@ write_csv(normalized.1000, "~/senior_thesis/plotting_dataframes/time_series/1000
 
 
 #add column for model key (reformatting data specific to the below plot)
-plot.normalized.1000 <- melt(normalized.1000,  id.vars = 'Year', value.name = 'POC_flux_1000', variable.name = "Model")
+plot.normalized.1000 <- data.table::melt(normalized.1000,  id.vars = 'Year', value.name = 'POC_flux_1000', variable.name = "Model")
 
 #plot time series at 1000m
 figure6 <- ggplot(data = plot.normalized.1000, aes(x = Year, y = POC_flux_1000, color = Model)) +
@@ -354,4 +354,165 @@ combined2 <- grid.arrange(figure, figure2, figure5, ncol = 1)
 
 ggsave(filename = "time_series_faceted.png", plot = combined2, path = "~/senior_thesis/figures/faceted/", width = 20, height = 36, units = "cm", dpi = 400)
 
+
+## 8. TIME SERIES NPP -------------------
+
+
+setwd("~/senior_thesis/plotting_dataframes/time_series/")
+df.npp <- list.files("~/senior_thesis/plotting_dataframes/time_series/", pattern = "*_time_series_npp.csv$")
+
+#create empty list for storing for loop output
+time.series2 <- list()
+
+for(i in df.npp) {
+  
+  #read in csv file
+  df.npp <- read_csv(i)
+  #get rid of random ...1 column
+  df.npp <- subset(df.npp, select = -c(...1))
+  #store into list
+  time.series2[[i]] <- df.npp
+}
+
+#add UKESM to list separately since it doesn't have the "...1" column
+time.series2$UKESM_time_series_npp.csv = as.tibble(read_csv("UKESM_time_series_npp.csv"))
+
+#join by year (2015 has a lot of repeats, but that doesn't effect later plotting)
+df.npp <- time.series2 %>% 
+  reduce(left_join, by = "Year")
+
+#add column for model key
+df2.npp <- data.table::melt(df.npp,  id.vars = 'Year', value.name = 'NPP', variable.name = "Model")
+
+#save NPP time-series data frame for all models
+write_csv(df.npp, file = "~/senior_thesis/plotting_dataframes/time_series/time_series_npp_all.csv")
+
+#plot time series at MLDmax
+figure7 <- ggplot(data = df2.npp, aes(x = Year, y = NPP, color = Model)) +
+  geom_line() +
+  geom_smooth(size = 0.5, se = FALSE) +
+  theme_bw() +
+  labs(title = "Time Series Change in Global NPP (1850-2100)") +
+  xlab(NULL) +
+  ylab("NPP (Pg C/yr)") +
+  scale_y_continuous(n.breaks = 6) +
+  #scale_color_manual(values = color) +
+  theme(plot.title = element_text(size = 18),
+        plot.subtitle = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        legend.key.size = unit(1, 'cm'), 
+        legend.key.height = unit(1, 'cm'), 
+        legend.key.width = unit(1, 'cm'), 
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12))
+
+figure7
+
+#save figure
+ggsave(filename = "time_series_npp.png", plot = figure7, path = "~/senior_thesis/figures/time_series/", width = 20, height = 12, units = "cm", dpi = 400)
+
+
+# 9. NORMALIZED NPP TIME SERIES ------------
+
+#read in df created for first figure
+ts.npp.all <- read_csv("~/senior_thesis/plotting_dataframes/time_series/time_series_npp_all.csv")
+ts.npp.all <- subset(ts.npp.all, select = -c(4))
+
+
+#calculate average for each model from 1850-1900
+mean1850_1900 <- dplyr::filter(ts.npp.all, between(Year, 1850, 1900)) %>% 
+  summarise_if(is.numeric, mean, na.rm = TRUE)
+
+mean1850_1900 <- subset(mean1850_1900, select = -c(1))
+
+#need to fix year column
+normalized.npp <- 
+  subset(ts.npp.all, select = -c(1))
+
+#calculate normalized POC flux
+normalized.npp <- mapply('/', normalized.npp, mean1850_1900)*100
+
+normalized.npp <- normalized.npp %>% 
+  cbind(Year = c(1849:2100)) %>% 
+  as_tibble() %>% 
+  relocate(Year, .before = CESM) 
+
+#add column for model key
+normalized.npp <- data.table::melt(normalized.npp,  id.vars = 'Year', value.name = 'NPP', variable.name = "Model")
+
+
+#save df
+write_csv(normalized.npp, "~/senior_thesis/plotting_dataframes/time_series/npp_time_series_normalized.csv")
+
+
+#plot time series at MLDmax
+figure8 <- ggplot(data = normalized.npp, aes(x = Year, y = NPP, color = Model)) +
+  geom_line() +
+  geom_smooth(size = 0.5, se = FALSE) +
+  theme_bw() +
+  labs(title = "Normalized Time Series Change in Global NPP (1850-2100)") +
+  xlab(NULL) +
+  ylab("NPP (Pg C/yr)") +
+  scale_y_continuous(n.breaks = 6) +
+  #scale_color_manual(values = color) +
+  theme(plot.title = element_text(size = 18),
+        plot.subtitle = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        legend.key.size = unit(1, 'cm'), 
+        legend.key.height = unit(1, 'cm'), 
+        legend.key.width = unit(1, 'cm'), 
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12))
+
+figure8
+
+#save figure
+ggsave(filename = "normalized_time_series_npp.png", plot = figure8, path = "~/senior_thesis/figures/time_series/", width = 20, height = 12, units = "cm", dpi = 400)
+
+
+# 10. TRANSFER EFFICIENCY TIME SERIES -----------
+
+#read in data frames
+setwd("~/senior_thesis/plotting_dataframes/time_series/")
+ts_100 <- read_csv("time_series_epc100_all.csv")
+ts_1000 <- read_csv("time_series_1000_all.csv")
+
+no_year_100 <- ts_100[2:7]
+no_year_1000 <- ts_1000[2:7]
+
+TE <- (no_year_1000/no_year_100)*100
+TE$Year = 1850:2100
+
+TE %>%
+  relocate(Year, .before = CESM) 
+
+#add column for model key
+TE <- data.table::melt(TE,  id.vars = 'Year', value.name = 'TE', variable.name = "Model")
+
+figure10 <- ggplot(data = TE, aes(x = Year, y = TE, color = Model)) +
+  geom_line() +
+  geom_smooth(size = 0.5, se = FALSE) +
+  theme_bw() +
+  labs(title = "Change in Global Transfer Efficiency (1850-2100)",
+       subtitle = "Between 100m and 1000m depth horizons") +
+  xlab(NULL) +
+  ylab("% Transferred") +
+  scale_y_continuous(n.breaks = 6) +
+  scale_color_manual(values = color) +
+  theme(plot.title = element_text(size = 18),
+        plot.subtitle = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        legend.key.size = unit(1, 'cm'), 
+        legend.key.height = unit(1, 'cm'), 
+        legend.key.width = unit(1, 'cm'), 
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12))
+
+figure10
+
+#save figure
+ggsave(filename = "time_series_TE.png", plot = figure10, path = "~/senior_thesis/figures/time_series/", width = 20, height = 12, units = "cm", dpi = 400)
 

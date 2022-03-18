@@ -21,7 +21,7 @@
               "doSNOW","emdbook","plotly","ggiraphExtra","viridis", "cowplot", "mapdata", "XML", 
               "ncdf4", "rasterVis", "fields","sf","rgdal","ncdf4","rgdal", "broom", "gridExtra", "lubridate", 
               "chron", "png", "grid", "lemon", "epwshiftr", "ggpubr", "R.oo","R.methodsS3", "R.utils", "plotly",
-              "cmocean", "magicfor", "rlist", "rioja","qpcR")
+              "cmocean", "magicfor", "rlist", "rioja","qpcR","akima")
 
 
 # Install CRAN packages (if not already installed)
