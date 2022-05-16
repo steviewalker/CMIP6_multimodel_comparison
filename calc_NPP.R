@@ -51,7 +51,9 @@ calc_npp_avg <- function(wd, nc.file, model.name, start.lt, lon.length, lat.leng
         #make list and add needed columns
         ret <- list()
         #NOTE - make sure you divide by 100 here if the depth units are in cm (CESM), otherwise the depth units are in m
-        ret$depth <-  ncvar_get(nc_file, "lev") #/100
+        #ret$depth <-  ncvar_get(nc_file, "lev") #/100
+        #for IPSL
+        ret$depth <-  ncvar_get(nc_file, "olevel")
         #subset npp for select lat and lon
         ret$npp <- extract(npp, indices = c(i,j), dims = c(1,2))
         #true/false test (pulls out first )
@@ -129,10 +131,10 @@ calc_npp_avg_his <- function(wd, nc.file, model.name, start.his, lon.length, lat
   nc_file <- nc_open(nc.file)
   
   #yearly (uncomment/comment depending on if data is year or month archived)
-  #v <- seq(from = start.his, to = start.his + 49, by = 1)
+  v <- seq(from = start.his, to = start.his + 49, by = 1)
   
   #monthly
-  v <- seq(from = start.his, to = start.his + 599, by = 12)
+  #v <- seq(from = start.his, to = start.his + 599, by = 12)
   
   #storage container for list of matrices
   list_npp <- list()
@@ -146,11 +148,11 @@ calc_npp_avg_his <- function(wd, nc.file, model.name, start.his, lon.length, lat
     t <- v[k]
     #pulls out array for one year, 3D with lat,lon,depth
     #yearly
-    #npp <- ncvar_get(nc_file, "pp", start = c(1,1,1,t), count = c(-1,-1,-1,1))*31536000
+    npp <- ncvar_get(nc_file, "pp", start = c(1,1,1,t), count = c(-1,-1,-1,1))*31536000
     
     #monthly
-    npp <- ncvar_get(nc_file, "pp", start = c(1,1,1,t), count = c(-1,-1,-1,12))*31536000 #convert to mol m-3 yr-1
-    npp <- apply(npp, c(1,2,3),mean,na.rm=FALSE)
+    #npp <- ncvar_get(nc_file, "pp", start = c(1,1,1,t), count = c(-1,-1,-1,12))*31536000 #convert to mol m-3 yr-1
+    #npp <- apply(npp, c(1,2,3),mean,na.rm=FALSE)
     
     #calculates column integrated npp for one year
     for(i in 1:length(lon.length)) {
@@ -159,7 +161,9 @@ calc_npp_avg_his <- function(wd, nc.file, model.name, start.his, lon.length, lat
         #make list and add needed columns
         ret <- list()
         #NOTE - make sure you divide by 100 here if the depth units are in cm (CESM), otherwise the depth units are in m
-        ret$depth <-  ncvar_get(nc_file, "lev") /100
+        #ret$depth <-  ncvar_get(nc_file, "lev") /100
+        #for IPSL
+        ret$depth <-  ncvar_get(nc_file, "olevel")
         #subset npp for select lat and lon
         ret$npp <- extract(npp, indices = c(i,j), dims = c(1,2))
         #true/false test (pulls out first )
@@ -170,12 +174,12 @@ calc_npp_avg_his <- function(wd, nc.file, model.name, start.his, lon.length, lat
           
           #create data frame
           #NOTE: need to change [1:x] to match the number of depth cells
-          profile <- data.frame(ret$depth, ret$npp[1:50]) %>%
+          profile <- data.frame(ret$depth, ret$npp[1:75]) %>%
             as_tibble() 
           #rename depth column
           profile <- rename(profile, depth = ret.depth)
           #also change this to match number of depth cells
-          profile <- rename(profile, npp = ret.npp.1.50.)
+          profile <- rename(profile, npp = ret.npp.1.75.)
           
           #add calculated column height
           profile <- profile %>% 
@@ -194,7 +198,7 @@ calc_npp_avg_his <- function(wd, nc.file, model.name, start.his, lon.length, lat
           profile <- profile %>%
             mutate(npp_new = npp*height)
           
-          #store interpolated POC flux into the output matrix
+          #store column integrated NPP into matrix
           output[i, j] <- sum(profile$npp_new, na.rm = TRUE)
           #land values - if a value doesn't exist for MLDmax, then don't interpolate, just put an NA value in output matrix  
         } else {

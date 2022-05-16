@@ -6,7 +6,7 @@
 ## Ignore this section --------------
 
 rGFDL <- readRDS("~/senior_thesis/plotting_dataframes/expc/GFDL_mean_expc_st.Rds")
-rMPI <- readRDS("~/senior_thesis/plotting_dataframes/expc/MPI_mean_expc_st.Rds")
+rMPI <- readRDS("~/senior_thesis/plotting_dataframes/expc/CESM_mean_expc_st.Rds")
 
 rGFDL <- raster(rGFDL, crs = "+proj=longlat +datum=WGS84")
 rMPI <- raster(rMPI, crs = "+proj=longlat +datum=WGS84")
@@ -318,7 +318,7 @@ map <- ggplot() +
   scale_fill_cmocean(limits = c(0,10), oob = squish, name = "deep", direction = 1) +
   xlab("Longitude") +
   ylab("Latitude")
-  
+
 ggsave("~/senior_thesis/figures/regridded_CESM_lt_npp_NA.png", map, width = 12, height = 14, units = "cm", dpi = 500)
 
 # plotting for the whole world  -------------
@@ -539,7 +539,7 @@ world <- ne_coastline(scale = "medium", returnclass = "sf")
 map <- ggplot() +
   geom_raster(data = df , aes(x = x, y = y, fill = layer)) + 
   geom_sf(data = world, fill = "grey70") +
-  coord_sf(xlim = c(-178, 178), ylim = c(-79, 88)) +
+  coord_sf(xlim = c(-178, 178), ylim = c(-79, 88), expand = FALSE) +
   labs(title = "CESM long-term (2079-2099) NPP",
        subtitle = "Regridded to regular 1x1 degree",
        fill = "NPP (mol m-2 yr-1)") +
@@ -567,8 +567,8 @@ lat.old = ncvar_get(nc_file, "nlat")
 lon.old = ncvar_get(nc_file, "nlon")
 lon.old = cbind(lon.old,lon.old)
 
-dimnames(matrix2) = list(lon = lon.old, lat = lat.old)
-old.df = melt(matrix2)
+dimnames(matrix) = list(lon = lon.old, lat = lat.old)
+old.df = melt(matrix)
 
 r = rasterFromXYZ(old.df)
 
@@ -589,13 +589,13 @@ remap.tbl$lon <- ifelse(remap.tbl$lon>180,
 range(remap.tbl$lon)
 range(remap.tbl$lat)
 
-geo.r <- raster(extent(-178, 180, -79, 88))
+geo.r <- raster(extent(-178, 178, -79, 88))
 res(geo.r) <- c(1,1)
 
 r.coords.x <- interp(remap.tbl$lon,remap.tbl$lat,remap.tbl$x,
-                     xo=xFromCol(geo.r),yo=yFromRow(geo.r))
+                     xo=xFromCol(geo.r),yo=yFromRow(geo.r), duplicate = "mean")
 r.coords.y <- interp(remap.tbl$lon,remap.tbl$lat,remap.tbl$y,
-                     xo=xFromCol(geo.r),yo=yFromRow(geo.r))
+                     xo=xFromCol(geo.r),yo=yFromRow(geo.r), duplicate = "mean")
 r.coords <- expand.grid(lon=xFromCol(geo.r),
                         lat=yFromRow(geo.r))
 r.coords$x <- as.vector(r.coords.x$z)
@@ -630,9 +630,270 @@ map <- ggplot() +
   ylab("Latitude") +
   theme_bw()
 
+
 map
 
 ggsave("~/senior_thesis/figures/regridded_CESM_lt_npp_world.png", map, width = 20, height = 10, units = "cm", dpi = 500)
 
 
 
+# plot GFDL -------------
+
+df = "~/senior_thesis/plotting_dataframes/epc100/GFDL_epc100_avg_his.Rds"
+nc.file = "epc100_Omon_GFDL-ESM4_historical_r1i1p1f1_gr_185001-201412.nc"
+model.name = "GFDL"
+lat.name = "lat"
+lon.name = "lon"
+variable = "pp"
+
+GFDL.raster <- function(df, nc.file, title, units) {
+  
+  matrix <- readRDS(df)
+  
+  setwd("~/senior_thesis/combined_GFDL_files/")
+  nc_file <- nc_open(nc.file)
+  
+  lat.old = ncvar_get(nc_file, "lat")
+  lon.old = ncvar_get(nc_file, "lon")
+  
+  dimnames(matrix) = list(lon = lon.old, lat = lat.old)
+  old.df = melt(matrix)
+  
+  old.df$lon <- ifelse(old.df$lon>180,
+         old.df$lon-360,
+         old.df$lon)
+  
+  r = rasterFromXYZ(old.df)
+  
+  #GFDL raster
+  geo.GFDL <- rasterToPoints(r, spatial = TRUE)
+  # Then to a 'conventional' dataframe
+  df.GFDL  <- data.frame(geo.GFDL)
+  
+  #correct lon scale
+  df.GFDL$x <- ifelse(df.GFDL$x>180,
+                      df.GFDL$x-360,
+                      df.GFDL$x)
+  
+  df.GFDL = subset(df.GFDL, select = -c(4))
+  
+  r = rasterFromXYZ(df.GFDL)
+  
+  world <- ne_coastline(scale = "medium", returnclass = "sf")
+  title = paste(model.name, "historical (2079-2099) POC flux at 100m", sep = " ")
+  
+  #map of regridded NA subset
+  map <- ggplot() +
+    geom_raster(data = df.GFDL , aes(x = x, y = y, fill = value)) + 
+    geom_sf(data = world, fill = "grey70") +
+    coord_sf(xlim = c(-178, 178), ylim = c(-79, 88), expand = FALSE) +
+    #labs(title = paste("GFDL Historical (1850-1900)", variable, sep = " "),
+    #     fill = units) +
+    #POC flux
+    scale_fill_cmocean(limits = c(0,6), oob = squish, name = "deep", direction = 1) +
+    xlab("Longitude") +
+    ylab("Latitude") +
+    theme_bw()
+  
+  map
+}
+
+matrix <- readRDS(df)
+
+setwd("~/senior_thesis/combined_GFDL_files/")
+nc_file <- nc_open(nc.file)
+
+lat.old = ncvar_get(nc_file, lat.name)
+lon.old = ncvar_get(nc_file, lon.name)
+
+dimnames(matrix) = list(lon = lon.old, lat = lat.old)
+old.df = melt(matrix)
+
+r = rasterFromXYZ(old.df)
+
+
+#GFDL raster
+geo.GFDL <- rasterToPoints(r, spatial = TRUE)
+# Then to a 'conventional' dataframe
+df.GFDL  <- data.frame(geo.GFDL)
+
+#correct lon scale
+df.GFDL$x <- ifelse(df.GFDL$x>180,
+                    df.GFDL$x-360,
+                    df.GFDL$x)
+
+world <- ne_coastline(scale = "medium", returnclass = "sf")
+title = paste(model.name, "historical (2079-2099) POC flux at 100m", sep = " ")
+
+#map of regridded NA subset
+map <- ggplot() +
+  geom_raster(data = df.GFDL , aes(x = x, y = y, fill = value)) + 
+  geom_sf(data = world, fill = "grey70") +
+  coord_sf(xlim = c(-178, 178), ylim = c(-79, 88), expand = FALSE) +
+  labs(title = title,
+       subtitle = "Regridded to regular 1x1 degree",
+       fill = "NPP (mol m-2 yr-1)") +
+  scale_fill_cmocean(limits = c(0,6), oob = squish, name = "deep", direction = 1) +
+  xlab("Longitude") +
+  ylab("Latitude") +
+  theme_bw()
+
+map
+
+
+## trying with areacello file (this didn't work) ------------
+
+#create pp raster
+b <- brick(nc,varname="pp")
+
+setwd("~/senior_thesis/test/")
+nc <- "pp_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100_rg.nc"
+nc_file <- nc_open("pp_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100_rg.nc")
+
+lat.old = ncvar_get(nc_file, "lat")
+lon.old = ncvar_get(nc_file, "lon")
+
+#extract coordinates at each grid cell
+lon <- raster(nc,varname="lon")
+lat <- raster(nc,varname="lat")
+
+#convert grid cells and corresponding lat-lon to a data.frame
+library(reshape)
+remap.tbl <- data.frame(coordinates(lon),
+                        lon=as.vector(lon),lat=as.vector(lat))
+tail(remap.tbl)
+
+#correct lon scale
+remap.tbl$lon <- ifelse(remap.tbl$lon>180,
+                        remap.tbl$lon-360,
+                        remap.tbl$lon)
+range(remap.tbl$lon)
+range(remap.tbl$lat)
+
+#shows entire model native grid
+library(maps)
+map("world",fill=TRUE,mar=c(0,0,0,0))
+points(lat ~lon,remap.tbl,pch=".",col="red")
+
+library(akima)
+#sample points from North Atlantic
+#remap.NA <- subset(remap.tbl,lon>-170 & lon<170 & lat > -80 & lat < 80)
+
+geo.r <- raster(extent(-178,178,-79,88))
+res(geo.r) <- c(1,1)
+
+r.coords.x <- interp(remap.tbl$lon,remap.tbl$lat,remap.tbl$x,
+                     xo=xFromCol(geo.r),yo=yFromRow(geo.r))
+r.coords.y <- interp(remap.tbl$lon,remap.tbl$lat,remap.tbl$y,
+                     xo=xFromCol(geo.r),yo=yFromRow(geo.r))
+r.coords <- expand.grid(lon=xFromCol(geo.r),
+                        lat=yFromRow(geo.r))
+r.coords$x <- as.vector(r.coords.x$z)
+r.coords$y <- as.vector(r.coords.y$z)
+
+r.coords.sp <- r.coords
+coordinates(r.coords.sp) <- ~x +y
+#important to make sure extract is from right package
+r.coords$pp <- raster::extract(b[[1]],r.coords.sp,method="bilinear")
+geo.r <- setValues(geo.r,r.coords$pp)
+#not sure why but the plot function stopped working
+plot(geo.r)
+map("worldHires",add=TRUE)
+
+# First, to a SpatialPointsDataFrame
+geo.r.pts <- rasterToPoints(geo.r, spatial = TRUE)
+# Then to a 'conventional' dataframe
+df  <- data.frame(geo.r.pts)
+
+world <- ne_coastline(scale = "medium", returnclass = "sf")
+
+#map of regridded NA subset
+map <- ggplot() +
+  geom_raster(data = df , aes(x = x, y = y, fill = layer)) + 
+  geom_sf(data = world, fill = "grey70") +
+  coord_sf(xlim = c(-178, 178), ylim = c(-79, 88), expand = FALSE) +
+  labs(title = "CESM long-term (2079-2099) NPP",
+       subtitle = "Regridded to regular 1x1 degree",
+       fill = "NPP (mol m-2 yr-1)") +
+  scale_fill_cmocean(limits = c(0,20), oob = squish, name = "deep", direction = 1) +
+  xlab("Longitude") +
+  ylab("Latitude") +
+  theme_bw()
+
+map
+
+
+## Trying with Puget Sound regridding code ------------
+
+#I really don't know how this works - the raster you get is really weird looking
+
+data.path = "~/senior_thesis/combined_CESM_files"
+this.file = "pp_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100.nc"
+resolution = "1440x1080"
+
+regrid_nc <- function(this.file, save.path, data.path, wgts.dir, resolution) {
+  
+  this.nc <- paste0(data.path,"/",this.file)
+  
+  this.name <- gsub(".nc","",this.file)
+  
+  new.name <- paste0(this.name,"_rg.nc")
+  
+  # open netCDF file
+  ncin <- nc_open(this.nc)
+  print(this.file) #lists basic info about file
+  
+  setwd(save.path)
+  test.file <- file.exists(new.name)
+  
+  if(test.file==FALSE){
+    
+    if(grepl("GFDL",new.name)) # GFDL is on the base grid already, so no need to regrid
+    {  
+      file.rename(from = file.path(data.path, this.file), to = file.path(save.path, new.name))
+      
+    }
+    else  # for cases when not GFDL, such as CNRM
+    {
+      setwd(data.path)
+      
+      # this outputs file information
+      system(paste("cdo sinfov ",this.file,sep=""), wait=TRUE)
+      
+      # Generate bilinear interpolation weights
+      system(paste("cdo genbil,r",resolution," ",this.file," ",this.name,"_wgts.nc",sep=""),wait = TRUE) 
+      
+      weigthFile <- paste0(this.name,"_wgts.nc")
+      
+      # Grid remapping
+      system(paste("cdo remap,r",resolution,",",weigthFile," ", this.file," ",new.name,sep=""),wait = TRUE)
+      
+      #move regrid files to separate directory
+      rgrid.files <- list.files(data.path, pattern = "rg.nc$")
+      
+      file.rename(from = file.path(data.path, rgrid.files), to = file.path(save.path, rgrid.files))
+      
+      #move weights files to separate directory
+      wgts.files <- list.files(data.path, pattern = "wgts.nc$")
+      
+      file.rename(from = file.path(data.path, wgts.files), to = file.path(wgts.dir, wgts.files))
+      
+      print(paste(this.file, "done regrid:", new.name))
+      
+    } # end of else statement (for cases when not GFDL) 
+  }
+  
+}
+
+setwd("~/senior_thesis/test/")
+nc <- "pp_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100_rg.nc"
+nc_file <- nc_open("pp_Oyr_CESM2_ssp585_r10i1p1f1_gn_2015-2100_rg.nc")
+
+
+pp <- ncvar_get(nc_file,"pp",start= c(1,1,1,1), count = c(-1,-1,-1,1))
+
+pp_layer <- pp[,,1]
+
+plotting <- raster(pp_layer)
+
+plot(plotting) 
